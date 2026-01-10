@@ -1,0 +1,2613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1E3A5F">
+    <meta name="description" content="Application pour plaquistes - Normes DTU, calculs et gestion de chantier">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PlaquistePro - DTU & Gestion</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #1E3A5F;
+            --primary-light: #2d5a8a;
+            --secondary: #E8F4FC;
+            --accent: #FF6B35;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --text: #333;
+            --text-light: #666;
+            --bg: #f5f5f5;
+            --white: #fff;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 12px 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 { font-size: 1.1rem; font-weight: 600; }
+        .header-subtitle { font-size: 0.7rem; opacity: 0.8; }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn.visible { display: flex; }
+
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        /* Navigation bottom */
+        .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 8px;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.6rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .nav-item.active { color: var(--primary); }
+        .nav-item .icon { font-size: 1.2rem; margin-bottom: 2px; }
+
+        /* Pages */
+        .page {
+            display: none;
+            padding: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Menu items */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .menu-item {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 15px 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .menu-item:active {
+            transform: scale(0.98);
+            border-color: var(--primary);
+        }
+
+        .menu-item .icon { font-size: 2rem; margin-bottom: 8px; }
+        .menu-item .label { font-weight: 600; color: var(--primary); font-size: 0.8rem; }
+        .menu-item .desc { font-size: 0.65rem; color: var(--text-light); margin-top: 3px; }
+
+        /* Sub-menu list */
+        .submenu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .submenu-item {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 14px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submenu-item:active { background: var(--secondary); }
+        .submenu-item .icon { font-size: 1.5rem; }
+        .submenu-item .content { flex: 1; }
+        .submenu-item .title { font-weight: 600; color: var(--primary); font-size: 0.9rem; }
+        .submenu-item .subtitle { font-size: 0.7rem; color: var(--text-light); }
+        .submenu-item .arrow { color: var(--text-light); font-size: 1rem; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; margin: 8px -12px; padding: 0 12px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 100%; }
+
+        th, td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #eee; }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            font-size: 0.7rem;
+        }
+
+        th:first-child, td:first-child { text-align: left; }
+        tr:nth-child(even) { background: var(--secondary); }
+        .table-highlight { background: #fff3cd !important; font-weight: 600; }
+
+        /* Forms */
+        .form-group { margin-bottom: 12px; }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 100px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-block { width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:active { background: var(--primary-light); }
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
+
+        /* Results */
+        .result-box {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-top: 12px;
+        }
+
+        .result-title { font-size: 0.8rem; opacity: 0.9; margin-bottom: 8px; }
+
+        .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+        .result-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .result-item .value { font-size: 1.3rem; font-weight: 700; }
+        .result-item .label { font-size: 0.65rem; opacity: 0.9; }
+
+        /* Info boxes */
+        .info-box {
+            background: var(--secondary);
+            border-left: 4px solid var(--primary);
+            padding: 10px;
+            border-radius: 0 8px 8px 0;
+            margin: 8px 0;
+            font-size: 0.8rem;
+        }
+
+        .info-box.warning { background: #fff3cd; border-color: var(--warning); }
+        .info-box.success { background: #d4edda; border-color: var(--success); }
+        .info-box.danger { background: #f8d7da; border-color: var(--danger); }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .tag-green { background: #d4edda; color: #155724; }
+        .tag-blue { background: #cce5ff; color: #004085; }
+        .tag-pink { background: #f8d7da; color: #721c24; }
+        .tag-gray { background: #e9ecef; color: #495057; }
+        .tag-orange { background: #ffe5d0; color: #856404; }
+        .tag-yellow { background: #fff3cd; color: #856404; }
+
+        /* Accordion */
+        .accordion-item {
+            background: var(--white);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+
+        .accordion-header::after {
+            content: '▼';
+            font-size: 0.6rem;
+            transition: transform 0.3s;
+        }
+
+        .accordion-item.open .accordion-header::after { transform: rotate(180deg); }
+        .accordion-content { display: none; padding: 0 12px 12px; }
+        .accordion-item.open .accordion-content { display: block; }
+
+        /* Checklist */
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .checklist-item:last-child { border-bottom: none; }
+
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            padding: 8px 12px;
+            background: var(--white);
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Rule list */
+        .rule-list { list-style: none; padding: 0; }
+
+        .rule-list li {
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .rule-list li::before { content: '✓'; color: var(--success); font-weight: bold; }
+        .rule-list li:last-child { border-bottom: none; }
+
+        .spec-value { font-weight: 700; color: var(--primary); }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 15px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .breadcrumb {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb span { color: var(--primary); font-weight: 600; }
+
+        /* ======================= */
+        /* GESTION CHANTIER STYLES */
+        /* ======================= */
+
+        /* Chantier list item */
+        .chantier-item {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .chantier-item:active { background: var(--secondary); }
+
+        .chantier-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--secondary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .chantier-info { flex: 1; }
+        .chantier-name { font-weight: 600; color: var(--primary); font-size: 0.95rem; }
+        .chantier-client { font-size: 0.75rem; color: var(--text-light); }
+        .chantier-meta { display: flex; gap: 10px; margin-top: 5px; font-size: 0.7rem; }
+
+        .chantier-status {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .status-actif { background: #d4edda; color: #155724; }
+        .status-pause { background: #fff3cd; color: #856404; }
+        .status-termine { background: #e9ecef; color: #495057; }
+
+        /* Progress bar */
+        .progress-bar {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        /* Document item */
+        .doc-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .doc-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .doc-icon.pdf { background: #dc3545; }
+        .doc-icon.img { background: #28a745; }
+        .doc-icon.xls { background: #217346; }
+        .doc-icon.txt { background: #6c757d; }
+
+        .doc-info { flex: 1; }
+        .doc-name { font-size: 0.85rem; font-weight: 500; }
+        .doc-meta { font-size: 0.7rem; color: var(--text-light); }
+
+        .doc-actions { display: flex; gap: 5px; }
+
+        .doc-btn {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .doc-btn-view { background: var(--secondary); color: var(--primary); }
+        .doc-btn-delete { background: #f8d7da; color: #721c24; }
+
+        /* Note item */
+        .note-item {
+            background: #fffbcc;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .note-date { font-size: 0.7rem; color: var(--text-light); margin-bottom: 5px; }
+        .note-content { font-size: 0.85rem; white-space: pre-wrap; }
+
+        /* Heures table */
+        .heures-row {
+            display: grid;
+            grid-template-columns: 1fr 80px 60px;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .heures-row input {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.7rem; color: var(--text-light); }
+
+        /* Floating action button */
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 15px;
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(255,107,53,0.4);
+            cursor: pointer;
+            z-index: 90;
+            display: none;
+        }
+
+        .fab.visible { display: flex; align-items: center; justify-content: center; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: var(--white);
+            width: 100%;
+            max-height: 90vh;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title { font-size: 1.1rem; font-weight: 600; color: var(--primary); }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state .icon { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+        .empty-state .text { font-size: 0.9rem; }
+
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 6px 12px;
+            background: var(--white);
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Quantitatif table */
+        .quantitatif-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 40px;
+            gap: 5px;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .quantitatif-row input {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .quantitatif-row .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Tâches */
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--white);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .task-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--success);
+        }
+
+        .task-text { flex: 1; font-size: 0.85rem; }
+
+        .task-delete {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Contact card */
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .contact-info { flex: 1; }
+        .contact-name { font-weight: 600; font-size: 0.9rem; }
+        .contact-role { font-size: 0.7rem; color: var(--text-light); }
+        .contact-phone { font-size: 0.8rem; color: var(--primary); }
+
+        @media (max-width: 360px) {
+            .menu-grid { grid-template-columns: 1fr; }
+            .result-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <button class="back-btn" id="backBtn" onclick="goBack()">←</button>
+            <div>
+                <h1 id="pageTitle">🔨 PlaquistePro</h1>
+                <div class="header-subtitle" id="pageSubtitle">DTU 25.41 & 25.42 - Gestion chantier</div>
+            </div>
+            <div class="header-actions" id="headerActions"></div>
+        </div>
+    </header>
+
+    <!-- Floating Action Button -->
+    <button class="fab" id="fab" onclick="handleFabClick()">+</button>
+
+    <!-- ==================== -->
+    <!-- PAGE ACCUEIL         -->
+    <!-- ==================== -->
+    <div class="page active" id="page-home">
+        <div class="menu-grid">
+            <div class="menu-item" onclick="showPage('normes')">
+                <div class="icon">📋</div>
+                <div class="label">Normes DTU</div>
+                <div class="desc">Règles de mise en œuvre</div>
+            </div>
+            <div class="menu-item" onclick="showPage('calculateur')">
+                <div class="icon">🧮</div>
+                <div class="label">Calculateur</div>
+                <div class="desc">Quantitatifs matériaux</div>
+            </div>
+            <div class="menu-item" onclick="showPage('chantiers')">
+                <div class="icon">🏗️</div>
+                <div class="label">Chantiers</div>
+                <div class="desc">Gestion & suivi</div>
+            </div>
+            <div class="menu-item" onclick="showPage('checklist')">
+                <div class="icon">✅</div>
+                <div class="label">Checklist</div>
+                <div class="desc">Contrôle chantier</div>
+            </div>
+            <div class="menu-item" onclick="showPage('hauteurs')">
+                <div class="icon">📏</div>
+                <div class="label">Hauteurs max</div>
+                <div class="desc">Tableaux DTU</div>
+            </div>
+            <div class="menu-item" onclick="showPage('locaux')">
+                <div class="icon">💧</div>
+                <div class="label">Locaux humides</div>
+                <div class="desc">EA, EB, EB+, EC</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 12px;">
+            <div class="card-title">💡 Rappel DTU 2022</div>
+            <p style="font-size: 0.8rem; color: var(--text-light);">
+                Les plafonds autoportants sur fourrures sont <strong>INTERDITS</strong>. 
+                Utiliser des montants pour les plafonds sans suspente.
+            </p>
+        </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- PAGE CHANTIERS       -->
+    <!-- ==================== -->
+    <div class="page" id="page-chantiers">
+        <div class="filter-tabs">
+            <div class="filter-tab active" onclick="filterChantiers('tous')">Tous</div>
+            <div class="filter-tab" onclick="filterChantiers('actif')">En cours</div>
+            <div class="filter-tab" onclick="filterChantiers('pause')">En pause</div>
+            <div class="filter-tab" onclick="filterChantiers('termine')">Terminés</div>
+        </div>
+
+        <div id="chantiersList">
+            <!-- Rempli dynamiquement -->
+        </div>
+
+        <div class="empty-state" id="emptyChantiers" style="display: none;">
+            <div class="icon">🏗️</div>
+            <div class="text">Aucun chantier<br>Appuyez sur + pour créer</div>
+        </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- PAGE DETAIL CHANTIER -->
+    <!-- ==================== -->
+    <div class="page" id="page-chantier-detail">
+        <div class="card" id="chantierHeader">
+            <!-- Rempli dynamiquement -->
+        </div>
+
+        <div class="tabs" id="chantierTabs">
+            <div class="tab active" onclick="showChantierTab('resume')">Résumé</div>
+            <div class="tab" onclick="showChantierTab('documents')">Documents</div>
+            <div class="tab" onclick="showChantierTab('notes')">Notes</div>
+            <div class="tab" onclick="showChantierTab('heures')">Heures</div>
+            <div class="tab" onclick="showChantierTab('quantitatif')">Quantitatif</div>
+            <div class="tab" onclick="showChantierTab('taches')">Tâches</div>
+        </div>
+
+        <!-- Onglet Résumé -->
+        <div id="tab-resume" class="chantier-tab-content">
+            <div class="stats-grid" id="chantierStats">
+                <!-- Stats dynamiques -->
+            </div>
+
+            <div class="card">
+                <div class="card-title">👤 Contacts</div>
+                <div id="contactsList">
+                    <!-- Contacts dynamiques -->
+                </div>
+                <button class="btn btn-outline btn-sm" style="margin-top: 10px;" onclick="openModal('addContact')">
+                    + Ajouter un contact
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📝 Informations</div>
+                <div id="chantierInfos">
+                    <!-- Infos dynamiques -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglet Documents -->
+        <div id="tab-documents" class="chantier-tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-title">📁 Fichiers</div>
+                <div id="documentsList">
+                    <!-- Documents dynamiques -->
+                </div>
+                <div class="empty-state" id="emptyDocs" style="display: none; padding: 20px;">
+                    <div class="icon">📂</div>
+                    <div class="text">Aucun document</div>
+                </div>
+            </div>
+            <input type="file" id="fileInput" style="display: none;" multiple onchange="handleFileUpload(event)">
+            <button class="btn btn-primary btn-block" onclick="document.getElementById('fileInput').click()">
+                📎 Ajouter des fichiers
+            </button>
+        </div>
+
+        <!-- Onglet Notes -->
+        <div id="tab-notes" class="chantier-tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-title">📝 Notes & Comptes-rendus</div>
+                <div id="notesList">
+                    <!-- Notes dynamiques -->
+                </div>
+                <div class="empty-state" id="emptyNotes" style="display: none; padding: 20px;">
+                    <div class="icon">📝</div>
+                    <div class="text">Aucune note</div>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="openModal('addNote')">
+                ✏️ Nouvelle note
+            </button>
+        </div>
+
+        <!-- Onglet Heures -->
+        <div id="tab-heures" class="chantier-tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-title">⏱️ Relevé d'heures</div>
+                <div style="margin-bottom: 10px;">
+                    <input type="date" id="heuresDate" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+                <div class="heures-row" style="font-weight: 600; font-size: 0.75rem; color: var(--text-light);">
+                    <span>Employé</span>
+                    <span>Heures</span>
+                    <span>Supp.</span>
+                </div>
+                <div id="heuresList">
+                    <!-- Heures dynamiques -->
+                </div>
+                <button class="btn btn-outline btn-sm" style="margin-top: 10px;" onclick="addHeuresRow()">
+                    + Ajouter un employé
+                </button>
+            </div>
+            <button class="btn btn-success btn-block" onclick="saveHeures()">
+                💾 Enregistrer les heures
+            </button>
+
+            <div class="card" style="margin-top: 15px;">
+                <div class="card-title">📊 Récapitulatif</div>
+                <div id="heuresRecap">
+                    <!-- Récap dynamique -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglet Quantitatif -->
+        <div id="tab-quantitatif" class="chantier-tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-title">📦 Quantitatif matériaux</div>
+                <div class="quantitatif-row" style="font-weight: 600; font-size: 0.7rem; color: var(--text-light);">
+                    <span>Désignation</span>
+                    <span>Qté</span>
+                    <span>Unité</span>
+                    <span></span>
+                </div>
+                <div id="quantitatifList">
+                    <!-- Lignes dynamiques -->
+                </div>
+                <button class="btn btn-outline btn-sm" style="margin-top: 10px;" onclick="addQuantitatifRow()">
+                    + Ajouter une ligne
+                </button>
+            </div>
+            <button class="btn btn-success btn-block" onclick="saveQuantitatif()">
+                💾 Enregistrer
+            </button>
+            <button class="btn btn-outline btn-block" style="margin-top: 8px;" onclick="importFromCalculateur()">
+                📥 Importer depuis calculateur
+            </button>
+        </div>
+
+        <!-- Onglet Tâches -->
+        <div id="tab-taches" class="chantier-tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-title">✅ Liste des tâches</div>
+                <div id="tachesList">
+                    <!-- Tâches dynamiques -->
+                </div>
+                <div class="empty-state" id="emptyTasks" style="display: none; padding: 20px;">
+                    <div class="icon">✓</div>
+                    <div class="text">Aucune tâche</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="newTaskInput" placeholder="Nouvelle tâche..." style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+                <button class="btn btn-primary" onclick="addTask()">+</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- PAGE NORMES          -->
+    <!-- ==================== -->
+    <div class="page" id="page-normes">
+        <div class="submenu-list">
+            <div class="submenu-item" onclick="showPage('normes-plafonds')">
+                <div class="icon">🔲</div>
+                <div class="content">
+                    <div class="title">Plafonds</div>
+                    <div class="subtitle">Suspendus, autoportants, 2Plus</div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="submenu-item" onclick="showPage('normes-cloisons')">
+                <div class="icon">🧱</div>
+                <div class="content">
+                    <div class="title">Cloisons distributives</div>
+                    <div class="subtitle">Ossature, plaques, portes</div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="submenu-item" onclick="showPage('normes-contre-cloisons')">
+                <div class="icon">📐</div>
+                <div class="content">
+                    <div class="title">Contre-cloisons</div>
+                    <div class="subtitle">Fourrures S47, montants</div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="submenu-item" onclick="showPage('normes-doublages')">
+                <div class="icon">🏠</div>
+                <div class="content">
+                    <div class="title">Doublages collés</div>
+                    <div class="subtitle">Complexes isolants</div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="submenu-item" onclick="showPage('normes-joints')">
+                <div class="icon">🎨</div>
+                <div class="content">
+                    <div class="title">Joints & Finitions</div>
+                    <div class="subtitle">Traitement, visserie</div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES PLAFONDS (simplifié pour l'exemple) -->
+    <div class="page" id="page-normes-plafonds">
+        <div class="breadcrumb">Normes DTU › <span>Plafonds</span></div>
+        
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                🔗 Plafonds suspendus sur fourrures S47
+            </div>
+            <div class="accordion-content">
+                <div class="section-title">Entraxe des ossatures</div>
+                <table>
+                    <tr><th>Pose plaques</th><th>Entraxe fourrures</th></tr>
+                    <tr><td>Perpendiculaire</td><td class="spec-value">50 ou 60 cm</td></tr>
+                    <tr><td>Parallèle</td><td class="spec-value">40 cm max</td></tr>
+                    <tr class="table-highlight"><td>Hygrométrie > 80%</td><td class="spec-value">50 cm max</td></tr>
+                </table>
+
+                <div class="section-title">Distance max entre suspentes (isolant ≤ 6 kg/m²)</div>
+                <table>
+                    <tr><th>Entraxe</th><th>1×BA13</th><th>1×BA18</th><th>2×BA13</th></tr>
+                    <tr><td>40 cm</td><td>1,20 m</td><td>1,20 m</td><td>1,20 m</td></tr>
+                    <tr><td>50 cm</td><td>1,20 m</td><td>1,15 m</td><td>1,15 m</td></tr>
+                    <tr><td>60 cm</td><td>1,20 m</td><td>1,05 m</td><td>1,00 m</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                ⚠️ Plafonds autoportants
+            </div>
+            <div class="accordion-content">
+                <div class="info-box danger">
+                    <strong>INTERDIT sur fourrures S47 !</strong><br>
+                    Uniquement sur montants fixés aux murs.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES CLOISONS (simplifié) -->
+    <div class="page" id="page-normes-cloisons">
+        <div class="breadcrumb">Normes DTU › <span>Cloisons</span></div>
+        
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                📐 Entraxe des montants
+            </div>
+            <div class="accordion-content">
+                <table>
+                    <tr><th>Configuration</th><th>Entraxe</th></tr>
+                    <tr><td>Standard (120 cm)</td><td class="spec-value">60 cm</td></tr>
+                    <tr><td>Carrelage > 1600 cm²</td><td class="spec-value">40 cm</td></tr>
+                    <tr><td>Plaques 90 cm</td><td class="spec-value">90 cm</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                🔩 Visserie
+            </div>
+            <div class="accordion-content">
+                <table>
+                    <tr><th>Config.</th><th>Vis</th></tr>
+                    <tr><td>1 × BA13</td><td class="spec-value">25 mm</td></tr>
+                    <tr><td>1 × BA18</td><td class="spec-value">35 mm</td></tr>
+                    <tr><td>2 × BA13</td><td class="spec-value">25 + 45 mm</td></tr>
+                </table>
+                <ul class="rule-list" style="margin-top: 10px;">
+                    <li>Entraxe vis : <span class="spec-value">30 cm</span></li>
+                    <li>Distance bord : <span class="spec-value">≥ 1 cm</span></li>
+                    <li>Pénétration acier : <span class="spec-value">≥ 10 mm</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES CONTRE-CLOISONS -->
+    <div class="page" id="page-normes-contre-cloisons">
+        <div class="breadcrumb">Normes DTU › <span>Contre-cloisons</span></div>
+        
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                📏 Sur fourrures S47
+            </div>
+            <div class="accordion-content">
+                <div class="section-title">Plaques 120 cm (BA13-BA18)</div>
+                <table>
+                    <tr><th>Config.</th><th>H max</th><th>Entraxe appuis</th></tr>
+                    <tr><td>1 appui</td><td class="spec-value">2,70 m</td><td>1,35 m max</td></tr>
+                    <tr><td>+sieurs appuis</td><td class="spec-value">5,30 m</td><td>1,30 m max</td></tr>
+                </table>
+
+                <div class="section-title">Plaques 90 cm</div>
+                <table>
+                    <tr><th>Plaque</th><th>Entraxe</th><th>Appuis</th></tr>
+                    <tr><td>BA18S</td><td>90 cm</td><td>1,25 m + entretoise 1m</td></tr>
+                    <tr><td>BA18S</td><td>45 cm</td><td>1,45 m</td></tr>
+                    <tr><td>BA25S</td><td>90 cm</td><td>1,35 m + entretoise 1m</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                📐 Sur montants (H max 7 m)
+            </div>
+            <div class="accordion-content">
+                <table>
+                    <tr><th>Montant</th><th>Simple</th><th>Double</th></tr>
+                    <tr><td>M48-35</td><td>2,10 m</td><td>2,50 m</td></tr>
+                    <tr><td>M70-35</td><td>2,65 m</td><td>3,15 m</td></tr>
+                    <tr><td>M90-35</td><td>3,05 m</td><td>3,65 m</td></tr>
+                    <tr><td>M100-50</td><td>3,45 m</td><td>4,10 m</td></tr>
+                </table>
+                <p style="font-size: 0.7rem; color: var(--text-light); margin-top: 5px;">Distance max entre appuis (1×BA13, E60)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES DOUBLAGES -->
+    <div class="page" id="page-normes-doublages">
+        <div class="breadcrumb">Normes DTU › <span>Doublages</span></div>
+        
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                📍 Plots de colle
+            </div>
+            <div class="accordion-content">
+                <ul class="rule-list">
+                    <li>Entraxe horizontal : <span class="spec-value">40 cm</span></li>
+                    <li>Entraxe vertical : <span class="spec-value">30 cm</span></li>
+                    <li>Irrégularités support : <span class="spec-value">< 15 mm</span></li>
+                    <li>Température : <span class="spec-value">> 5°C</span></li>
+                </ul>
+                <div class="info-box warning" style="margin-top: 10px;">
+                    <strong>INTERDIT :</strong> collage sur mur peint ou tapissé
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                📏 Hauteurs max
+            </div>
+            <div class="accordion-content">
+                <table>
+                    <tr><th>Type</th><th>Sans tasseau</th><th>Avec tasseau</th></tr>
+                    <tr><td>Logements</td><td>3,60 m</td><td>6,00 m</td></tr>
+                    <tr><td>ERP</td><td>3,00 m</td><td>4,00 m</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES JOINTS -->
+    <div class="page" id="page-normes-joints">
+        <div class="breadcrumb">Normes DTU › <span>Joints</span></div>
+        
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                🎨 Traitement des joints
+            </div>
+            <div class="accordion-content">
+                <ul class="rule-list">
+                    <li><strong>1ère couche :</strong> pose de la bande</li>
+                    <li><strong>2ème couche :</strong> maintien</li>
+                    <li><strong>3ème couche :</strong> finition</li>
+                    <li>Séchage : <span class="spec-value">12 à 48h</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                ✂️ Joints de fractionnement
+            </div>
+            <div class="accordion-content">
+                <ul class="rule-list">
+                    <li>Distance max : <span class="spec-value">25 m</span></li>
+                    <li>Surface max : <span class="spec-value">300 m²</span></li>
+                    <li>Au droit des joints de dilatation</li>
+                    <li>Si fourrures changent de sens</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- PAGE CALCULATEUR     -->
+    <!-- ==================== -->
+    <div class="page" id="page-calculateur">
+        <div class="tabs">
+            <div class="tab active" onclick="showCalcTab('cloison')">Cloison</div>
+            <div class="tab" onclick="showCalcTab('plafond')">Plafond</div>
+            <div class="tab" onclick="showCalcTab('doublage')">Doublage</div>
+        </div>
+
+        <div id="calc-cloison">
+            <div class="card">
+                <div class="card-title">📐 Dimensions</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Longueur (m)</label>
+                        <input type="number" id="cloisonLongueur" placeholder="ex: 5" step="0.1" oninput="calculerCloisonAuto()">
+                    </div>
+                    <div class="form-group">
+                        <label>Hauteur (m)</label>
+                        <input type="number" id="cloisonHauteur" placeholder="ex: 2.5" step="0.1" oninput="calculerCloisonAuto()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">⚙️ Configuration</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Parement</label>
+                        <select id="cloisonParement" onchange="calculerCloisonAuto()">
+                            <option value="simple">Simple</option>
+                            <option value="double">Double</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Entraxe</label>
+                        <select id="cloisonEntraxe" onchange="calculerCloisonAuto()">
+                            <option value="60">60 cm</option>
+                            <option value="40">40 cm</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Type de plaque</label>
+                    <select id="cloisonPlaque" onchange="calculerCloisonAuto()">
+                        <option value="BA13">BA13</option>
+                        <option value="BA18">BA18</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="resultatCloison" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">📦 Matériaux nécessaires</div>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="value" id="resPlaquesNb">-</div>
+                            <div class="label">Plaques</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="value" id="resMontants">-</div>
+                            <div class="label">Montants</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="value" id="resRails">-</div>
+                            <div class="label">Rails (ml)</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="value" id="resVis">-</div>
+                            <div class="label">Vis</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button class="btn btn-outline btn-block btn-sm" onclick="exportToQuantitatif()">
+                        📤 Exporter vers un chantier
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="calc-plafond" style="display: none;">
+            <div class="card">
+                <div class="card-title">📐 Dimensions pièce</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Longueur (m)</label>
+                        <input type="number" id="plafondLongueur" placeholder="ex: 4" step="0.1" oninput="calculerPlafondAuto()">
+                    </div>
+                    <div class="form-group">
+                        <label>Largeur (m)</label>
+                        <input type="number" id="plafondLargeur" placeholder="ex: 3" step="0.1" oninput="calculerPlafondAuto()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultatPlafond" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">📦 Matériaux nécessaires</div>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="value" id="resPlafPlaques">-</div>
+                            <div class="label">Plaques</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="value" id="resPlafFourrures">-</div>
+                            <div class="label">Fourrures (ml)</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="value" id="resPlafSuspentes">-</div>
+                            <div class="label">Suspentes</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="value" id="resPlafCornieres">-</div>
+                            <div class="label">Cornières (ml)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="calc-doublage" style="display: none;">
+            <div class="card">
+                <div class="card-title">📐 Surface</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Longueur (m)</label>
+                        <input type="number" id="doublageLongueur" placeholder="ex: 4" step="0.1" oninput="calculerDoublageAuto()">
+                    </div>
+                    <div class="form-group">
+                        <label>Hauteur (m)</label>
+                        <input type="number" id="doublageHauteur" placeholder="ex: 2.5" step="0.1" oninput="calculerDoublageAuto()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultatDoublage" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">📦 Matériaux nécessaires</div>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="value" id="resDoubPlaques">-</div>
+                            <div class="label">Complexes</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="value" id="resDoubMAP">-</div>
+                            <div class="label">MAP (kg)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- PAGE HAUTEURS        -->
+    <!-- ==================== -->
+    <div class="page" id="page-hauteurs">
+        <div class="card">
+            <div class="card-title">📏 Cloisons - Simple parement BA13</div>
+            <div class="table-container">
+                <table>
+                    <tr><th>Montant</th><th>E60</th><th>E40</th></tr>
+                    <tr><td>M48-35</td><td>2,50 m</td><td>2,80 m</td></tr>
+                    <tr><td>M70-35</td><td>3,25 m</td><td>3,70 m</td></tr>
+                    <tr><td>M90-35</td><td>3,90 m</td><td>4,50 m</td></tr>
+                    <tr><td>M100-50</td><td>4,45 m</td><td>5,10 m</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📏 Contre-cloisons sur fourrures S47</div>
+            <div class="table-container">
+                <table>
+                    <tr><th>Config.</th><th>H max</th><th>Appuis</th></tr>
+                    <tr><td>1 appui (120cm)</td><td class="spec-value">2,70 m</td><td>1,35 m</td></tr>
+                    <tr><td>+sieurs (120cm)</td><td class="spec-value">5,30 m</td><td>1,30 m</td></tr>
+                    <tr><td>BA18S (E90)</td><td class="spec-value">5,30 m</td><td>1,25 m</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- PAGE CHECKLIST       -->
+    <!-- ==================== -->
+    <div class="page" id="page-checklist">
+        <div class="card">
+            <div class="card-title">✅ Avant pose</div>
+            <div class="checklist-item"><input type="checkbox"> Bâtiment hors d'eau / hors d'air</div>
+            <div class="checklist-item"><input type="checkbox"> Support sec et propre</div>
+            <div class="checklist-item"><input type="checkbox"> Traçage effectué</div>
+            <div class="checklist-item"><input type="checkbox"> Température > 5°C</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">✅ Ossature</div>
+            <div class="checklist-item"><input type="checkbox"> Fixation rails tous les 60 cm</div>
+            <div class="checklist-item"><input type="checkbox"> Entraxe montants respecté</div>
+            <div class="checklist-item"><input type="checkbox"> Montants coupés à H - 1 cm</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">✅ Plaques</div>
+            <div class="checklist-item"><input type="checkbox"> Jeu en pied : 1 cm</div>
+            <div class="checklist-item"><input type="checkbox"> Joints décalés</div>
+            <div class="checklist-item"><input type="checkbox"> Entraxe vis : 30 cm max</div>
+        </div>
+
+        <button class="btn btn-accent btn-block" style="margin-top: 10px;" onclick="resetChecklist()">
+            🔄 Réinitialiser
+        </button>
+    </div>
+
+    <!-- ==================== -->
+    <!-- PAGE LOCAUX HUMIDES  -->
+    <!-- ==================== -->
+    <div class="page" id="page-locaux">
+        <div class="card">
+            <strong style="color: var(--primary);">🏠 EA - Locaux secs</strong>
+            <p style="font-size: 0.8rem; margin: 5px 0;">Chambre, séjour, couloir</p>
+            <span class="tag tag-gray">Plaques standards</span>
+        </div>
+
+        <div class="card">
+            <strong style="color: var(--primary);">🍳 EB - Moyennement humides</strong>
+            <p style="font-size: 0.8rem; margin: 5px 0;">Cuisine, WC</p>
+            <span class="tag tag-green">H1 conseillé</span>
+        </div>
+
+        <div class="card" style="border: 2px solid var(--warning);">
+            <strong style="color: var(--primary);">🚿 EB+ privatif</strong>
+            <p style="font-size: 0.8rem; margin: 5px 0;">Salle de bains, garage</p>
+            <span class="tag tag-green">H1 OBLIGATOIRE</span>
+            <div class="info-box warning" style="margin-top: 8px; font-size: 0.75rem;">
+                Entraxe 40 cm si carrelage > 1600 cm²
+            </div>
+        </div>
+
+        <div class="card" style="border: 2px solid var(--danger);">
+            <strong style="color: var(--primary);">🏢 EB+ collectif</strong>
+            <p style="font-size: 0.8rem; margin: 5px 0;">Douches collectives, sanitaires ERP</p>
+            <span class="tag tag-green">H1 OBLIGATOIRE</span>
+            <div class="info-box danger" style="margin-top: 8px; font-size: 0.75rem;">
+                SPEC obligatoire en zone ruissellement
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- MODALS               -->
+    <!-- ==================== -->
+    
+    <!-- Modal Nouveau Chantier -->
+    <div class="modal" id="modal-newChantier">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🏗️ Nouveau chantier</div>
+                <button class="modal-close" onclick="closeModal('newChantier')">×</button>
+            </div>
+            <div class="form-group">
+                <label>Nom du chantier *</label>
+                <input type="text" id="newChantierNom" placeholder="ex: Rénovation Dupont">
+            </div>
+            <div class="form-group">
+                <label>Client</label>
+                <input type="text" id="newChantierClient" placeholder="ex: M. Dupont">
+            </div>
+            <div class="form-group">
+                <label>Adresse</label>
+                <input type="text" id="newChantierAdresse" placeholder="ex: 12 rue des Lilas, 75001 Paris">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date début</label>
+                    <input type="date" id="newChantierDateDebut">
+                </div>
+                <div class="form-group">
+                    <label>Date fin prévue</label>
+                    <input type="date" id="newChantierDateFin">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="newChantierNotes" placeholder="Informations complémentaires..."></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="createChantier()">
+                ✓ Créer le chantier
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Nouvelle Note -->
+    <div class="modal" id="modal-addNote">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📝 Nouvelle note</div>
+                <button class="modal-close" onclick="closeModal('addNote')">×</button>
+            </div>
+            <div class="form-group">
+                <label>Titre</label>
+                <input type="text" id="noteTitle" placeholder="ex: Réunion de chantier #3">
+            </div>
+            <div class="form-group">
+                <label>Contenu</label>
+                <textarea id="noteContent" style="min-height: 200px;" placeholder="Compte-rendu, observations..."></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveNote()">
+                💾 Enregistrer
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Nouveau Contact -->
+    <div class="modal" id="modal-addContact">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">👤 Nouveau contact</div>
+                <button class="modal-close" onclick="closeModal('addContact')">×</button>
+            </div>
+            <div class="form-group">
+                <label>Nom</label>
+                <input type="text" id="contactNom" placeholder="ex: Jean Martin">
+            </div>
+            <div class="form-group">
+                <label>Rôle</label>
+                <select id="contactRole">
+                    <option value="Client">Client</option>
+                    <option value="Architecte">Architecte</option>
+                    <option value="Maître d'œuvre">Maître d'œuvre</option>
+                    <option value="Électricien">Électricien</option>
+                    <option value="Plombier">Plombier</option>
+                    <option value="Autre">Autre</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" id="contactTel" placeholder="ex: 06 12 34 56 78">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="contactEmail" placeholder="ex: contact@email.com">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveContact()">
+                💾 Enregistrer
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Export Quantitatif -->
+    <div class="modal" id="modal-exportQuantitatif">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📤 Exporter vers chantier</div>
+                <button class="modal-close" onclick="closeModal('exportQuantitatif')">×</button>
+            </div>
+            <div class="form-group">
+                <label>Choisir un chantier</label>
+                <select id="exportChantierSelect">
+                    <!-- Options dynamiques -->
+                </select>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="confirmExportQuantitatif()">
+                ✓ Exporter
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation bottom -->
+    <nav class="nav-bottom">
+        <button class="nav-item active" onclick="showPage('home')" id="nav-home">
+            <span class="icon">🏠</span>
+            <span>Accueil</span>
+        </button>
+        <button class="nav-item" onclick="showPage('chantiers')" id="nav-chantiers">
+            <span class="icon">🏗️</span>
+            <span>Chantiers</span>
+        </button>
+        <button class="nav-item" onclick="showPage('normes')" id="nav-normes">
+            <span class="icon">📋</span>
+            <span>Normes</span>
+        </button>
+        <button class="nav-item" onclick="showPage('calculateur')" id="nav-calculateur">
+            <span class="icon">🧮</span>
+            <span>Calcul</span>
+        </button>
+        <button class="nav-item" onclick="showPage('checklist')" id="nav-checklist">
+            <span class="icon">✅</span>
+            <span>Check</span>
+        </button>
+    </nav>
+
+    <script>
+        // =====================
+        // BASE DE DONNÉES LOCAL
+        // =====================
+        let db;
+        const DB_NAME = 'PlaquisteProDB';
+        const DB_VERSION = 1;
+
+        // Initialisation IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    
+                    // Store Chantiers
+                    if (!database.objectStoreNames.contains('chantiers')) {
+                        const chantierStore = database.createObjectStore('chantiers', { keyPath: 'id', autoIncrement: true });
+                        chantierStore.createIndex('status', 'status', { unique: false });
+                    }
+                    
+                    // Store Documents
+                    if (!database.objectStoreNames.contains('documents')) {
+                        const docStore = database.createObjectStore('documents', { keyPath: 'id', autoIncrement: true });
+                        docStore.createIndex('chantierId', 'chantierId', { unique: false });
+                    }
+                    
+                    // Store Notes
+                    if (!database.objectStoreNames.contains('notes')) {
+                        const noteStore = database.createObjectStore('notes', { keyPath: 'id', autoIncrement: true });
+                        noteStore.createIndex('chantierId', 'chantierId', { unique: false });
+                    }
+                    
+                    // Store Heures
+                    if (!database.objectStoreNames.contains('heures')) {
+                        const heuresStore = database.createObjectStore('heures', { keyPath: 'id', autoIncrement: true });
+                        heuresStore.createIndex('chantierId', 'chantierId', { unique: false });
+                    }
+                    
+                    // Store Quantitatif
+                    if (!database.objectStoreNames.contains('quantitatif')) {
+                        const quantStore = database.createObjectStore('quantitatif', { keyPath: 'id', autoIncrement: true });
+                        quantStore.createIndex('chantierId', 'chantierId', { unique: false });
+                    }
+                    
+                    // Store Tâches
+                    if (!database.objectStoreNames.contains('taches')) {
+                        const taskStore = database.createObjectStore('taches', { keyPath: 'id', autoIncrement: true });
+                        taskStore.createIndex('chantierId', 'chantierId', { unique: false });
+                    }
+                    
+                    // Store Contacts
+                    if (!database.objectStoreNames.contains('contacts')) {
+                        const contactStore = database.createObjectStore('contacts', { keyPath: 'id', autoIncrement: true });
+                        contactStore.createIndex('chantierId', 'chantierId', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // Fonctions DB génériques
+        function dbAdd(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.add(data);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function dbGetAll(storeName) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function dbGet(storeName, id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const request = store.get(id);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function dbUpdate(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.put(data);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function dbDelete(storeName, id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function dbGetByIndex(storeName, indexName, value) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const index = store.index(indexName);
+                const request = index.getAll(value);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // =====================
+        // NAVIGATION
+        // =====================
+        let currentPage = 'home';
+        let pageHistory = [];
+        let currentChantier = null;
+        let currentFilter = 'tous';
+
+        const pageTitles = {
+            'home': { title: '🔨 PlaquistePro', subtitle: 'DTU & Gestion de chantier' },
+            'chantiers': { title: '🏗️ Mes chantiers', subtitle: 'Gestion et suivi' },
+            'chantier-detail': { title: '📁 Détail chantier', subtitle: '' },
+            'normes': { title: '📋 Normes DTU', subtitle: 'Choisir un type d\'ouvrage' },
+            'normes-plafonds': { title: '🔲 Plafonds', subtitle: 'DTU 25.41' },
+            'normes-cloisons': { title: '🧱 Cloisons', subtitle: 'DTU 25.41' },
+            'normes-contre-cloisons': { title: '📐 Contre-cloisons', subtitle: 'DTU 25.41' },
+            'normes-doublages': { title: '🏠 Doublages', subtitle: 'DTU 25.42' },
+            'normes-joints': { title: '🎨 Joints', subtitle: 'DTU 25.41' },
+            'calculateur': { title: '🧮 Calculateur', subtitle: 'Quantitatifs matériaux' },
+            'hauteurs': { title: '📏 Hauteurs max', subtitle: 'Tableaux DTU' },
+            'checklist': { title: '✅ Checklist', subtitle: 'Contrôle chantier' },
+            'locaux': { title: '💧 Locaux humides', subtitle: 'Classification' }
+        };
+
+        function showPage(pageId) {
+            if (currentPage !== pageId) {
+                pageHistory.push(currentPage);
+            }
+            currentPage = pageId;
+
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navItem = document.getElementById('nav-' + pageId);
+            if (navItem) navItem.classList.add('active');
+            
+            if (pageId.startsWith('normes')) {
+                document.getElementById('nav-normes').classList.add('active');
+            }
+
+            updateHeader(pageId);
+            updateFab(pageId);
+
+            // Actions spécifiques par page
+            if (pageId === 'chantiers') {
+                loadChantiers();
+            }
+        }
+
+        function updateHeader(pageId) {
+            const info = pageTitles[pageId] || pageTitles['home'];
+            document.getElementById('pageTitle').textContent = info.title;
+            document.getElementById('pageSubtitle').textContent = info.subtitle;
+            document.getElementById('backBtn').classList.toggle('visible', pageId !== 'home');
+        }
+
+        function updateFab(pageId) {
+            const fab = document.getElementById('fab');
+            fab.classList.toggle('visible', pageId === 'chantiers');
+        }
+
+        function goBack() {
+            if (pageHistory.length > 0) {
+                const prevPage = pageHistory.pop();
+                showPage(prevPage);
+                pageHistory.pop(); // Enlever la page ajoutée par showPage
+            } else {
+                showPage('home');
+            }
+        }
+
+        function handleFabClick() {
+            if (currentPage === 'chantiers') {
+                openModal('newChantier');
+            }
+        }
+
+        // =====================
+        // CHANTIERS
+        // =====================
+        async function loadChantiers() {
+            const chantiers = await dbGetAll('chantiers');
+            const list = document.getElementById('chantiersList');
+            const empty = document.getElementById('emptyChantiers');
+
+            let filtered = chantiers;
+            if (currentFilter !== 'tous') {
+                filtered = chantiers.filter(c => c.status === currentFilter);
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+            } else {
+                empty.style.display = 'none';
+                list.innerHTML = filtered.map(c => `
+                    <div class="chantier-item" onclick="openChantier(${c.id})">
+                        <div class="chantier-icon">🏠</div>
+                        <div class="chantier-info">
+                            <div class="chantier-name">${c.nom}</div>
+                            <div class="chantier-client">${c.client || 'Pas de client'}</div>
+                            <div class="chantier-meta">
+                                <span class="chantier-status status-${c.status}">${getStatusLabel(c.status)}</span>
+                                <span>${c.dateDebut || ''}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${c.avancement || 0}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getStatusLabel(status) {
+            const labels = { 'actif': 'En cours', 'pause': 'En pause', 'termine': 'Terminé' };
+            return labels[status] || status;
+        }
+
+        function filterChantiers(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            loadChantiers();
+        }
+
+        async function createChantier() {
+            const nom = document.getElementById('newChantierNom').value.trim();
+            if (!nom) {
+                alert('Veuillez entrer un nom de chantier');
+                return;
+            }
+
+            const chantier = {
+                nom: nom,
+                client: document.getElementById('newChantierClient').value.trim(),
+                adresse: document.getElementById('newChantierAdresse').value.trim(),
+                dateDebut: document.getElementById('newChantierDateDebut').value,
+                dateFin: document.getElementById('newChantierDateFin').value,
+                notes: document.getElementById('newChantierNotes').value.trim(),
+                status: 'actif',
+                avancement: 0,
+                createdAt: new Date().toISOString()
+            };
+
+            await dbAdd('chantiers', chantier);
+            closeModal('newChantier');
+            
+            // Reset form
+            document.getElementById('newChantierNom').value = '';
+            document.getElementById('newChantierClient').value = '';
+            document.getElementById('newChantierAdresse').value = '';
+            document.getElementById('newChantierDateDebut').value = '';
+            document.getElementById('newChantierDateFin').value = '';
+            document.getElementById('newChantierNotes').value = '';
+            
+            loadChantiers();
+        }
+
+        async function openChantier(id) {
+            currentChantier = await dbGet('chantiers', id);
+            if (!currentChantier) return;
+
+            document.getElementById('pageTitle').textContent = currentChantier.nom;
+            document.getElementById('pageSubtitle').textContent = currentChantier.client || '';
+
+            await loadChantierDetail();
+            showPage('chantier-detail');
+        }
+
+        async function loadChantierDetail() {
+            if (!currentChantier) return;
+
+            // Header
+            document.getElementById('chantierHeader').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">${currentChantier.adresse || 'Pas d\'adresse'}</div>
+                        <div style="margin-top: 8px;">
+                            <span class="chantier-status status-${currentChantier.status}">${getStatusLabel(currentChantier.status)}</span>
+                        </div>
+                    </div>
+                    <select onchange="updateChantierStatus(this.value)" style="padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
+                        <option value="actif" ${currentChantier.status === 'actif' ? 'selected' : ''}>En cours</option>
+                        <option value="pause" ${currentChantier.status === 'pause' ? 'selected' : ''}>En pause</option>
+                        <option value="termine" ${currentChantier.status === 'termine' ? 'selected' : ''}>Terminé</option>
+                    </select>
+                </div>
+                <div style="margin-top: 12px;">
+                    <label style="font-size: 0.75rem; color: var(--text-light);">Avancement: ${currentChantier.avancement || 0}%</label>
+                    <input type="range" min="0" max="100" value="${currentChantier.avancement || 0}" 
+                           onchange="updateAvancement(this.value)" style="width: 100%;">
+                </div>
+            `;
+
+            // Charger les stats
+            await loadChantierStats();
+            await loadContacts();
+            await loadDocuments();
+            await loadNotes();
+            await loadHeures();
+            await loadQuantitatif();
+            await loadTaches();
+        }
+
+        async function loadChantierStats() {
+            const [docs, notes, heures, tasks] = await Promise.all([
+                dbGetByIndex('documents', 'chantierId', currentChantier.id),
+                dbGetByIndex('notes', 'chantierId', currentChantier.id),
+                dbGetByIndex('heures', 'chantierId', currentChantier.id),
+                dbGetByIndex('taches', 'chantierId', currentChantier.id)
+            ]);
+
+            const totalHeures = heures.reduce((sum, h) => sum + (parseFloat(h.heures) || 0), 0);
+            const tasksDone = tasks.filter(t => t.completed).length;
+
+            document.getElementById('chantierStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${docs.length}</div>
+                    <div class="stat-label">Documents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${notes.length}</div>
+                    <div class="stat-label">Notes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalHeures.toFixed(1)}h</div>
+                    <div class="stat-label">Heures totales</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${tasksDone}/${tasks.length}</div>
+                    <div class="stat-label">Tâches</div>
+                </div>
+            `;
+        }
+
+        async function updateChantierStatus(status) {
+            currentChantier.status = status;
+            await dbUpdate('chantiers', currentChantier);
+            loadChantierDetail();
+        }
+
+        async function updateAvancement(value) {
+            currentChantier.avancement = parseInt(value);
+            await dbUpdate('chantiers', currentChantier);
+        }
+
+        function showChantierTab(tab) {
+            document.querySelectorAll('.chantier-tab-content').forEach(c => c.style.display = 'none');
+            document.getElementById('tab-' + tab).style.display = 'block';
+            document.querySelectorAll('#chantierTabs .tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // =====================
+        // CONTACTS
+        // =====================
+        async function loadContacts() {
+            const contacts = await dbGetByIndex('contacts', 'chantierId', currentChantier.id);
+            const list = document.getElementById('contactsList');
+
+            if (contacts.length === 0) {
+                list.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-light);">Aucun contact</div>';
+            } else {
+                list.innerHTML = contacts.map(c => `
+                    <div class="contact-item">
+                        <div class="contact-avatar">${c.nom.charAt(0).toUpperCase()}</div>
+                        <div class="contact-info">
+                            <div class="contact-name">${c.nom}</div>
+                            <div class="contact-role">${c.role}</div>
+                            ${c.tel ? `<div class="contact-phone"><a href="tel:${c.tel}">${c.tel}</a></div>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function saveContact() {
+            const contact = {
+                chantierId: currentChantier.id,
+                nom: document.getElementById('contactNom').value.trim(),
+                role: document.getElementById('contactRole').value,
+                tel: document.getElementById('contactTel').value.trim(),
+                email: document.getElementById('contactEmail').value.trim()
+            };
+
+            if (!contact.nom) {
+                alert('Veuillez entrer un nom');
+                return;
+            }
+
+            await dbAdd('contacts', contact);
+            closeModal('addContact');
+            
+            document.getElementById('contactNom').value = '';
+            document.getElementById('contactTel').value = '';
+            document.getElementById('contactEmail').value = '';
+            
+            await loadContacts();
+            await loadChantierStats();
+        }
+
+        // =====================
+        // DOCUMENTS
+        // =====================
+        async function loadDocuments() {
+            const docs = await dbGetByIndex('documents', 'chantierId', currentChantier.id);
+            const list = document.getElementById('documentsList');
+            const empty = document.getElementById('emptyDocs');
+
+            if (docs.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+            } else {
+                empty.style.display = 'none';
+                list.innerHTML = docs.map(d => `
+                    <div class="doc-item">
+                        <div class="doc-icon ${getDocIconClass(d.type)}">${getDocIcon(d.type)}</div>
+                        <div class="doc-info">
+                            <div class="doc-name">${d.name}</div>
+                            <div class="doc-meta">${formatFileSize(d.size)} • ${formatDate(d.createdAt)}</div>
+                        </div>
+                        <div class="doc-actions">
+                            <button class="doc-btn doc-btn-view" onclick="viewDocument(${d.id})">👁</button>
+                            <button class="doc-btn doc-btn-delete" onclick="deleteDocument(${d.id})">🗑</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getDocIconClass(type) {
+            if (type.includes('pdf')) return 'pdf';
+            if (type.includes('image')) return 'img';
+            if (type.includes('sheet') || type.includes('excel')) return 'xls';
+            return 'txt';
+        }
+
+        function getDocIcon(type) {
+            if (type.includes('pdf')) return '📄';
+            if (type.includes('image')) return '🖼';
+            if (type.includes('sheet') || type.includes('excel')) return '📊';
+            return '📝';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('fr-FR');
+        }
+
+        async function handleFileUpload(event) {
+            const files = event.target.files;
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const doc = {
+                        chantierId: currentChantier.id,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: e.target.result,
+                        createdAt: new Date().toISOString()
+                    };
+                    await dbAdd('documents', doc);
+                    await loadDocuments();
+                    await loadChantierStats();
+                };
+                reader.readAsDataURL(file);
+            }
+            event.target.value = '';
+        }
+
+        async function viewDocument(id) {
+            const doc = await dbGet('documents', id);
+            if (doc && doc.data) {
+                const win = window.open();
+                if (doc.type.includes('image')) {
+                    win.document.write(`<img src="${doc.data}" style="max-width: 100%;">`);
+                } else if (doc.type.includes('pdf')) {
+                    win.document.write(`<iframe src="${doc.data}" width="100%" height="100%" style="border: none;"></iframe>`);
+                } else {
+                    win.document.write(`<pre>${atob(doc.data.split(',')[1])}</pre>`);
+                }
+            }
+        }
+
+        async function deleteDocument(id) {
+            if (confirm('Supprimer ce document ?')) {
+                await dbDelete('documents', id);
+                await loadDocuments();
+                await loadChantierStats();
+            }
+        }
+
+        // =====================
+        // NOTES
+        // =====================
+        async function loadNotes() {
+            const notes = await dbGetByIndex('notes', 'chantierId', currentChantier.id);
+            const list = document.getElementById('notesList');
+            const empty = document.getElementById('emptyNotes');
+
+            if (notes.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+            } else {
+                empty.style.display = 'none';
+                notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                list.innerHTML = notes.map(n => `
+                    <div class="note-item">
+                        <div class="note-date">${n.title || 'Sans titre'} • ${formatDate(n.createdAt)}</div>
+                        <div class="note-content">${n.content}</div>
+                        <button class="btn btn-sm btn-outline" style="margin-top: 8px;" onclick="deleteNote(${n.id})">🗑 Supprimer</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function saveNote() {
+            const note = {
+                chantierId: currentChantier.id,
+                title: document.getElementById('noteTitle').value.trim(),
+                content: document.getElementById('noteContent').value.trim(),
+                createdAt: new Date().toISOString()
+            };
+
+            if (!note.content) {
+                alert('Veuillez entrer du contenu');
+                return;
+            }
+
+            await dbAdd('notes', note);
+            closeModal('addNote');
+            
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteContent').value = '';
+            
+            await loadNotes();
+            await loadChantierStats();
+        }
+
+        async function deleteNote(id) {
+            if (confirm('Supprimer cette note ?')) {
+                await dbDelete('notes', id);
+                await loadNotes();
+                await loadChantierStats();
+            }
+        }
+
+        // =====================
+        // HEURES
+        // =====================
+        let heuresRows = [];
+
+        async function loadHeures() {
+            const heures = await dbGetByIndex('heures', 'chantierId', currentChantier.id);
+            
+            // Récap par employé
+            const recap = {};
+            heures.forEach(h => {
+                if (!recap[h.employe]) recap[h.employe] = { heures: 0, supp: 0 };
+                recap[h.employe].heures += parseFloat(h.heures) || 0;
+                recap[h.employe].supp += parseFloat(h.supp) || 0;
+            });
+
+            document.getElementById('heuresRecap').innerHTML = Object.keys(recap).length === 0 
+                ? '<div style="font-size: 0.8rem; color: var(--text-light);">Aucune heure enregistrée</div>'
+                : Object.entries(recap).map(([emp, data]) => `
+                    <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee;">
+                        <span>${emp}</span>
+                        <span><strong>${data.heures.toFixed(1)}h</strong> + ${data.supp.toFixed(1)}h supp</span>
+                    </div>
+                `).join('');
+
+            // Reset formulaire
+            document.getElementById('heuresDate').valueAsDate = new Date();
+            heuresRows = [{ employe: '', heures: '', supp: '' }];
+            renderHeuresRows();
+        }
+
+        function renderHeuresRows() {
+            document.getElementById('heuresList').innerHTML = heuresRows.map((r, i) => `
+                <div class="heures-row">
+                    <input type="text" placeholder="Nom" value="${r.employe}" onchange="heuresRows[${i}].employe = this.value">
+                    <input type="number" placeholder="0" step="0.5" value="${r.heures}" onchange="heuresRows[${i}].heures = this.value">
+                    <input type="number" placeholder="0" step="0.5" value="${r.supp}" onchange="heuresRows[${i}].supp = this.value">
+                </div>
+            `).join('');
+        }
+
+        function addHeuresRow() {
+            heuresRows.push({ employe: '', heures: '', supp: '' });
+            renderHeuresRows();
+        }
+
+        async function saveHeures() {
+            const date = document.getElementById('heuresDate').value;
+            if (!date) {
+                alert('Veuillez sélectionner une date');
+                return;
+            }
+
+            for (const row of heuresRows) {
+                if (row.employe && (row.heures || row.supp)) {
+                    await dbAdd('heures', {
+                        chantierId: currentChantier.id,
+                        date: date,
+                        employe: row.employe,
+                        heures: parseFloat(row.heures) || 0,
+                        supp: parseFloat(row.supp) || 0,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+            }
+
+            await loadHeures();
+            await loadChantierStats();
+            alert('Heures enregistrées !');
+        }
+
+        // =====================
+        // QUANTITATIF
+        // =====================
+        let quantitatifRows = [];
+
+        async function loadQuantitatif() {
+            const items = await dbGetByIndex('quantitatif', 'chantierId', currentChantier.id);
+            quantitatifRows = items.length > 0 ? items : [{ designation: '', qte: '', unite: 'u' }];
+            renderQuantitatifRows();
+        }
+
+        function renderQuantitatifRows() {
+            document.getElementById('quantitatifList').innerHTML = quantitatifRows.map((r, i) => `
+                <div class="quantitatif-row">
+                    <input type="text" placeholder="Désignation" value="${r.designation || ''}" onchange="quantitatifRows[${i}].designation = this.value">
+                    <input type="number" placeholder="0" value="${r.qte || ''}" onchange="quantitatifRows[${i}].qte = this.value">
+                    <select onchange="quantitatifRows[${i}].unite = this.value">
+                        <option value="u" ${r.unite === 'u' ? 'selected' : ''}>u</option>
+                        <option value="ml" ${r.unite === 'ml' ? 'selected' : ''}>ml</option>
+                        <option value="m²" ${r.unite === 'm²' ? 'selected' : ''}>m²</option>
+                        <option value="kg" ${r.unite === 'kg' ? 'selected' : ''}>kg</option>
+                    </select>
+                    <button class="delete-btn" onclick="deleteQuantitatifRow(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function addQuantitatifRow() {
+            quantitatifRows.push({ designation: '', qte: '', unite: 'u' });
+            renderQuantitatifRows();
+        }
+
+        function deleteQuantitatifRow(index) {
+            quantitatifRows.splice(index, 1);
+            if (quantitatifRows.length === 0) {
+                quantitatifRows.push({ designation: '', qte: '', unite: 'u' });
+            }
+            renderQuantitatifRows();
+        }
+
+        async function saveQuantitatif() {
+            // Supprimer les anciens
+            const old = await dbGetByIndex('quantitatif', 'chantierId', currentChantier.id);
+            for (const item of old) {
+                await dbDelete('quantitatif', item.id);
+            }
+
+            // Ajouter les nouveaux
+            for (const row of quantitatifRows) {
+                if (row.designation) {
+                    await dbAdd('quantitatif', {
+                        chantierId: currentChantier.id,
+                        designation: row.designation,
+                        qte: row.qte,
+                        unite: row.unite
+                    });
+                }
+            }
+
+            alert('Quantitatif enregistré !');
+        }
+
+        // =====================
+        // TÂCHES
+        // =====================
+        async function loadTaches() {
+            const tasks = await dbGetByIndex('taches', 'chantierId', currentChantier.id);
+            const list = document.getElementById('tachesList');
+            const empty = document.getElementById('emptyTasks');
+
+            if (tasks.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+            } else {
+                empty.style.display = 'none';
+                list.innerHTML = tasks.map(t => `
+                    <div class="task-item ${t.completed ? 'completed' : ''}">
+                        <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})">
+                        <span class="task-text">${t.text}</span>
+                        <button class="task-delete" onclick="deleteTask(${t.id})">×</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function addTask() {
+            const input = document.getElementById('newTaskInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            await dbAdd('taches', {
+                chantierId: currentChantier.id,
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            });
+
+            input.value = '';
+            await loadTaches();
+            await loadChantierStats();
+        }
+
+        async function toggleTask(id) {
+            const task = await dbGet('taches', id);
+            task.completed = !task.completed;
+            await dbUpdate('taches', task);
+            await loadTaches();
+            await loadChantierStats();
+        }
+
+        async function deleteTask(id) {
+            await dbDelete('taches', id);
+            await loadTaches();
+            await loadChantierStats();
+        }
+
+        // =====================
+        // EXPORT CALCULATEUR
+        // =====================
+        let lastCalculation = null;
+
+        async function exportToQuantitatif() {
+            const chantiers = await dbGetAll('chantiers');
+            if (chantiers.length === 0) {
+                alert('Créez d\'abord un chantier');
+                return;
+            }
+
+            const select = document.getElementById('exportChantierSelect');
+            select.innerHTML = chantiers.map(c => `<option value="${c.id}">${c.nom}</option>`).join('');
+            openModal('exportQuantitatif');
+        }
+
+        async function confirmExportQuantitatif() {
+            const chantierId = parseInt(document.getElementById('exportChantierSelect').value);
+            
+            // Récupérer les valeurs du calculateur
+            const items = [
+                { designation: 'Plaques de plâtre', qte: document.getElementById('resPlaquesNb').textContent, unite: 'u' },
+                { designation: 'Montants', qte: document.getElementById('resMontants').textContent, unite: 'u' },
+                { designation: 'Rails', qte: document.getElementById('resRails').textContent, unite: 'ml' },
+                { designation: 'Vis', qte: document.getElementById('resVis').textContent, unite: 'u' }
+            ];
+
+            for (const item of items) {
+                if (item.qte && item.qte !== '-') {
+                    await dbAdd('quantitatif', {
+                        chantierId: chantierId,
+                        designation: item.designation,
+                        qte: item.qte,
+                        unite: item.unite
+                    });
+                }
+            }
+
+            closeModal('exportQuantitatif');
+            alert('Exporté vers le chantier !');
+        }
+
+        // =====================
+        // MODALS
+        // =====================
+        function openModal(name) {
+            document.getElementById('modal-' + name).classList.add('active');
+        }
+
+        function closeModal(name) {
+            document.getElementById('modal-' + name).classList.remove('active');
+        }
+
+        // Fermer modal en cliquant en dehors
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // =====================
+        // ACCORDIONS
+        // =====================
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            item.classList.toggle('open');
+        }
+
+        // =====================
+        // CALCULATEURS
+        // =====================
+        function showCalcTab(tab) {
+            document.querySelectorAll('#page-calculateur > div[id^="calc-"]').forEach(c => c.style.display = 'none');
+            document.getElementById('calc-' + tab).style.display = 'block';
+            document.querySelectorAll('#page-calculateur .tabs .tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function calculerCloisonAuto() {
+            const longueur = parseFloat(document.getElementById('cloisonLongueur').value) || 0;
+            const hauteur = parseFloat(document.getElementById('cloisonHauteur').value) || 0;
+            
+            if (longueur > 0 && hauteur > 0) {
+                const parement = document.getElementById('cloisonParement').value;
+                const entraxe = parseInt(document.getElementById('cloisonEntraxe').value);
+                
+                const surface = longueur * hauteur;
+                const coef = 1.05;
+                const multiplicateur = parement === 'double' ? 4 : 2;
+                
+                const nbPlaques = Math.ceil((surface / 3) * multiplicateur * coef);
+                const nbMontants = Math.ceil(longueur / (entraxe / 100)) + 1;
+                const rails = Math.ceil(longueur * 2 * coef * 10) / 10;
+                const vis = Math.ceil(nbPlaques * 25);
+
+                document.getElementById('resPlaquesNb').textContent = nbPlaques;
+                document.getElementById('resMontants').textContent = nbMontants;
+                document.getElementById('resRails').textContent = rails;
+                document.getElementById('resVis').textContent = vis;
+
+                document.getElementById('resultatCloison').style.display = 'block';
+            } else {
+                document.getElementById('resultatCloison').style.display = 'none';
+            }
+        }
+
+        function calculerPlafondAuto() {
+            const longueur = parseFloat(document.getElementById('plafondLongueur').value) || 0;
+            const largeur = parseFloat(document.getElementById('plafondLargeur').value) || 0;
+            
+            if (longueur > 0 && largeur > 0) {
+                const surface = longueur * largeur;
+                const coef = 1.05;
+                
+                const nbPlaques = Math.ceil(surface * coef / 3);
+                const fourrures = Math.ceil(2.1 * surface * 10) / 10;
+                const suspentes = Math.ceil(1.4 * surface);
+                const cornieres = Math.ceil((longueur + largeur) * 2 * 10) / 10;
+
+                document.getElementById('resPlafPlaques').textContent = nbPlaques;
+                document.getElementById('resPlafFourrures').textContent = fourrures;
+                document.getElementById('resPlafSuspentes').textContent = suspentes;
+                document.getElementById('resPlafCornieres').textContent = cornieres;
+
+                document.getElementById('resultatPlafond').style.display = 'block';
+            } else {
+                document.getElementById('resultatPlafond').style.display = 'none';
+            }
+        }
+
+        function calculerDoublageAuto() {
+            const longueur = parseFloat(document.getElementById('doublageLongueur').value) || 0;
+            const hauteur = parseFloat(document.getElementById('doublageHauteur').value) || 0;
+            
+            if (longueur > 0 && hauteur > 0) {
+                const surface = longueur * hauteur;
+                const coef = 1.05;
+                
+                const nbPlaques = Math.ceil(surface * coef / 3);
+                const map = Math.ceil(surface * 3);
+
+                document.getElementById('resDoubPlaques').textContent = nbPlaques;
+                document.getElementById('resDoubMAP').textContent = map;
+
+                document.getElementById('resultatDoublage').style.display = 'block';
+            } else {
+                document.getElementById('resultatDoublage').style.display = 'none';
+            }
+        }
+
+        function resetChecklist() {
+            document.querySelectorAll('#page-checklist input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        // =====================
+        // INITIALISATION
+        // =====================
+        async function init() {
+            await initDB();
+            console.log('PlaquistePro initialisé');
+        }
+
+        init();
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW:', err));
+        }
+    </script>
+</body>
+</html>
