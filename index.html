@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1E3A5F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>PlaquistePro - DTU & Gestion v5</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #1E3A5F; --primary-light: #2d5a8a; --secondary: #E8F4FC;
+            --accent: #FF6B35; --success: #28a745; --warning: #ffc107; --danger: #dc3545;
+            --text: #333; --text-light: #666; --bg: #f5f5f5; --white: #fff;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1); --radius: 12px;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 70px; }
+        .header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; padding: 12px 15px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+        .header-content { display: flex; align-items: center; gap: 10px; }
+        .header h1 { font-size: 1.1rem; font-weight: 600; }
+        .header-subtitle { font-size: 0.7rem; opacity: 0.8; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; font-size: 1rem; cursor: pointer; display: none; align-items: center; justify-content: center; }
+        .back-btn.visible { display: flex; }
+        .settings-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; font-size: 1rem; cursor: pointer; margin-left: auto; display: flex; align-items: center; justify-content: center; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 6px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; padding: 6px 8px; color: var(--text-light); font-size: 0.6rem; cursor: pointer; border: none; background: none; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item .icon { font-size: 1.2rem; margin-bottom: 2px; }
+        .page { display: none; padding: 12px; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: var(--white); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; box-shadow: var(--shadow); }
+        .card-title { font-size: 0.9rem; font-weight: 600; color: var(--primary); margin-bottom: 8px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .menu-item { background: var(--white); border-radius: var(--radius); padding: 15px 10px; text-align: center; box-shadow: var(--shadow); cursor: pointer; border: 2px solid transparent; }
+        .menu-item:active { border-color: var(--primary); }
+        .menu-item .icon { font-size: 2rem; margin-bottom: 8px; }
+        .menu-item .label { font-weight: 600; color: var(--primary); font-size: 0.8rem; }
+        .menu-item .desc { font-size: 0.65rem; color: var(--text-light); margin-top: 3px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--primary); font-size: 0.8rem; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .btn-block { width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .result-box { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; border-radius: var(--radius); padding: 15px; margin-top: 12px; }
+        .result-title { font-size: 0.8rem; opacity: 0.9; margin-bottom: 8px; }
+        .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .result-item { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; }
+        .result-item .value { font-size: 1.3rem; font-weight: 700; }
+        .result-item .label { font-size: 0.65rem; opacity: 0.9; }
+        .info-box { background: var(--secondary); border-left: 4px solid var(--primary); padding: 10px; border-radius: 0 8px 8px 0; margin: 8px 0; font-size: 0.8rem; }
+        .info-box.warning { background: #fff3cd; border-color: var(--warning); }
+        .info-box.danger { background: #f8d7da; border-color: var(--danger); }
+        .tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; }
+        .tab { padding: 8px 12px; background: var(--white); border: 2px solid #ddd; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .spec-value { font-weight: 700; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th, td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: var(--primary); color: white; font-size: 0.7rem; }
+        th:first-child, td:first-child { text-align: left; }
+        tr:nth-child(even) { background: var(--secondary); }
+        .accordion-item { background: var(--white); border-radius: var(--radius); margin-bottom: 8px; box-shadow: var(--shadow); overflow: hidden; }
+        .accordion-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--primary); font-size: 0.85rem; }
+        .accordion-header::after { content: '▼'; font-size: 0.6rem; transition: transform 0.3s; }
+        .accordion-item.open .accordion-header::after { transform: rotate(180deg); }
+        .accordion-content { display: none; padding: 0 12px 12px; }
+        .accordion-item.open .accordion-content { display: block; }
+        .section-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin: 15px 0 10px; padding-bottom: 5px; border-bottom: 2px solid var(--primary); }
+        .rule-list { list-style: none; padding: 0; }
+        .rule-list li { padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.8rem; display: flex; gap: 8px; }
+        .rule-list li::before { content: '✔'; color: var(--success); font-weight: bold; }
+        .submenu-item { background: var(--white); border-radius: var(--radius); padding: 14px 15px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); cursor: pointer; margin-bottom: 8px; }
+        .submenu-item .icon { font-size: 1.5rem; }
+        .submenu-item .content { flex: 1; }
+        .submenu-item .title { font-weight: 600; color: var(--primary); font-size: 0.9rem; }
+        .submenu-item .subtitle { font-size: 0.7rem; color: var(--text-light); }
+        .ai-status { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin: 10px 0; }
+        .ai-status.loading { background: #e3f2fd; color: #1565c0; }
+        .ai-status.success { background: #d4edda; color: #155724; }
+        .ai-status.error { background: #f8d7da; color: #721c24; }
+        .spinner { width: 16px; height: 16px; border: 2px solid #1565c0; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .plan-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; background: #f0f0f0; }
+        .ouvrage-item { background: var(--bg); border-radius: 8px; padding: 10px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+        .ouvrage-item.cloison { border-color: #E91E63; }
+        .ouvrage-item.doublage { border-color: #00BCD4; }
+        .ouvrage-item.plafond { border-color: #F44336; }
+        .ouvrage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .ouvrage-type { font-weight: 600; font-size: 0.85rem; }
+        .ouvrage-delete { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
+        .ouvrage-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .ouvrage-detail { text-align: center; }
+        .ouvrage-detail .value { font-weight: 700; color: var(--primary); }
+        .ouvrage-detail .label { font-size: 0.65rem; color: var(--text-light); }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+        .tag { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 600; }
+        .tag-green { background: #d4edda; color: #155724; }
+        .tag-blue { background: #cce5ff; color: #004085; }
+        .tag-pink { background: #f8d7da; color: #721c24; }
+        .breadcrumb { font-size: 0.7rem; color: var(--text-light); margin-bottom: 10px; }
+        .breadcrumb span { color: var(--primary); font-weight: 600; }
+        .detail-calc { margin-top: 10px; font-size: 0.75rem; color: var(--text-light); background: var(--secondary); padding: 10px; border-radius: 8px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--white); width: 100%; max-width: 400px; max-height: 90vh; border-radius: var(--radius); padding: 20px; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-title { font-size: 1.1rem; font-weight: 600; color: var(--primary); }
+        .modal-close { background: none; border: none; font-size: 1.5rem; color: var(--text-light); cursor: pointer; }
+        .config-status { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 10px; }
+        .config-status.configured { background: #d4edda; color: #155724; }
+        .config-status.not-configured { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <button class="back-btn" id="backBtn" onclick="goBack()">←</button>
+            <div>
+                <h1 id="pageTitle">🔨 PlaquistePro</h1>
+                <div class="header-subtitle" id="pageSubtitle">DTU 25.41 & 25.42 - v5</div>
+            </div>
+            <button class="settings-btn" onclick="openModal('settings')">⚙️</button>
+        </div>
+    </header>
+
+    <!-- MODAL SETTINGS -->
+    <div class="modal" id="modal-settings">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">⚙️ Configuration IA</div>
+                <button class="modal-close" onclick="closeModal('settings')">×</button>
+            </div>
+            <div id="configStatus" class="config-status not-configured">❌ IA non configurée</div>
+            <div class="info-box" style="margin-bottom: 15px;">
+                <strong>Pour activer l'analyse IA :</strong><br>
+                1. Créez un Worker Cloudflare (gratuit)<br>
+                2. Ajoutez votre clé API Claude<br>
+                3. Collez l'URL ci-dessous
+            </div>
+            <div class="form-group">
+                <label>URL du Worker Cloudflare</label>
+                <input type="url" id="workerUrl" placeholder="https://votre-worker.workers.dev">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveConfig()">💾 Enregistrer</button>
+            <button class="btn btn-outline btn-block" style="margin-top: 10px;" onclick="testConnection()">🔍 Tester la connexion</button>
+            <div class="accordion-item" style="margin-top: 15px;">
+                <div class="accordion-header" onclick="toggleAccordion(this)">📖 Guide d'installation</div>
+                <div class="accordion-content">
+                    <ol style="font-size: 0.8rem; padding-left: 20px;">
+                        <li style="margin-bottom: 8px;">Allez sur <a href="https://dash.cloudflare.com" target="_blank">dash.cloudflare.com</a></li>
+                        <li style="margin-bottom: 8px;">Créez un compte gratuit</li>
+                        <li style="margin-bottom: 8px;">Workers & Pages → Create Worker</li>
+                        <li style="margin-bottom: 8px;">Collez le code du fichier <strong>cloudflare-worker.js</strong></li>
+                        <li style="margin-bottom: 8px;">Deploy</li>
+                        <li style="margin-bottom: 8px;">Settings → Variables → Add: <strong>ANTHROPIC_API_KEY</strong></li>
+                        <li style="margin-bottom: 8px;">Copiez l'URL du worker ici</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE ACCUEIL -->
+    <div class="page active" id="page-home">
+        <div id="homeConfigAlert" class="info-box warning" style="display: none; margin-bottom: 15px;">
+            ⚠️ <strong>IA non configurée</strong> - Cliquez sur ⚙️
+        </div>
+        <div class="menu-grid">
+            <div class="menu-item" onclick="showPage('normes')"><div class="icon">📋</div><div class="label">Normes DTU</div><div class="desc">Règles de mise en œuvre</div></div>
+            <div class="menu-item" onclick="showPage('calculateur')"><div class="icon">🧮</div><div class="label">Calculateur</div><div class="desc">Quantitatifs matériaux</div></div>
+            <div class="menu-item" onclick="showPage('analyse-plan')"><div class="icon">🤖</div><div class="label">Analyse IA</div><div class="desc">Quantitatif depuis plan</div></div>
+            <div class="menu-item" onclick="showPage('hauteurs')"><div class="icon">📏</div><div class="label">Hauteurs max</div><div class="desc">Tableaux DTU</div></div>
+            <div class="menu-item" onclick="showPage('locaux')"><div class="icon">💧</div><div class="label">Locaux humides</div><div class="desc">EA, EB, EB+, EC</div></div>
+            <div class="menu-item" onclick="showPage('aide')"><div class="icon">❓</div><div class="label">Aide</div><div class="desc">Rails vs Montants</div></div>
+        </div>
+    </div>
+
+    <!-- PAGE AIDE -->
+    <div class="page" id="page-aide">
+        <div class="card">
+            <div class="card-title">📚 Rails vs Montants</div>
+            <div class="info-box">
+                <strong>RAILS</strong> = sol + plafond (horizontal)<br>
+                Quantité = longueur × 2, barres de 3m
+            </div>
+            <div class="info-box" style="margin-top: 10px;">
+                <strong>MONTANTS</strong> = verticaux dans les rails<br>
+                Quantité = (longueur ÷ entraxe) + 1
+            </div>
+            <div class="info-box warning" style="margin-top: 10px;">
+                ⚠️ <strong>Hauteur > 3m</strong> = éclissage (2 barres/montant)
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE ANALYSE IA -->
+    <div class="page" id="page-analyse-plan">
+        <div id="aiConfigAlert" class="info-box danger" style="display: none;">⚠️ Configurez l'IA dans ⚙️</div>
+        <div class="card">
+            <div class="card-title">🤖 Analyse IA de plan</div>
+            <input type="file" id="planInputAI" accept="image/*" onchange="handlePlanUploadAI(event)" style="display: none;">
+            <div id="planPreviewContainerAI" style="display: none;">
+                <img id="planPreviewAI" class="plan-preview" alt="Plan">
+                <button class="btn btn-outline btn-sm btn-block" onclick="removePlanAI()">🗑️ Supprimer</button>
+            </div>
+            <button id="addPlanBtnAI" class="btn btn-primary btn-block" onclick="document.getElementById('planInputAI').click()">📷 Charger un plan</button>
+        </div>
+        <div id="aiAnalysisSection" style="display: none;">
+            <div class="card">
+                <div class="form-group">
+                    <label>Hauteur sous plafond (m)</label>
+                    <input type="number" id="aiHauteurDefaut" value="2.50" step="0.01">
+                </div>
+                <button class="btn btn-accent btn-block" id="btnAnalyseIA" onclick="lancerAnalyseIA()">🔍 Analyser avec l'IA</button>
+            </div>
+            <div id="aiStatusContainer"></div>
+            <div id="aiResultsContainer" style="display: none;">
+                <div class="card"><div class="card-title">📊 Résultats IA</div><div id="aiResultsList"></div></div>
+                <button class="btn btn-success btn-block" onclick="validerAnalyseIA()">✓ Valider</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">✏️ Saisie manuelle</div>
+            <div class="form-group">
+                <label>Type d'ouvrage</label>
+                <select id="analyseTypeOuvrage">
+                    <option value="cloison-48">Cloison M48</option>
+                    <option value="cloison-62">Cloison M62</option>
+                    <option value="cloison-70">Cloison M70</option>
+                    <option value="cloison-90">Cloison M90</option>
+                    <option value="doublage-colle">Doublage collé</option>
+                    <option value="plafond-suspendu">Plafond suspendu</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Parement</label><select id="analyseParement"><option value="BA13">BA13</option><option value="BA13-H1">BA13 H1</option><option value="2xBA13">2×BA13</option></select></div>
+                <div class="form-group"><label>Entraxe</label><select id="analyseEntraxe"><option value="60">60 cm</option><option value="40">40 cm</option></select></div>
+            </div>
+            <div class="form-group"><label>Localisation</label><input type="text" id="analyseLocalisation" placeholder="ex: Cloison WC"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Linéaire (ml)</label><input type="number" id="analyseLineaire" step="0.01"></div>
+                <div class="form-group"><label>Hauteur (m)</label><input type="number" id="analyseHauteur" value="2.50" step="0.01"></div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="ajouterOuvrage()">➕ Ajouter</button>
+        </div>
+        <div class="card">
+            <div class="card-title">📦 Ouvrages</div>
+            <div id="ouvragesList"></div>
+            <div class="empty-state" id="emptyOuvrages"><div class="icon">📝</div><div>Aucun ouvrage</div></div>
+        </div>
+        <button class="btn btn-success btn-block" onclick="calculerQuantitatifPlan()" id="btnCalculerPlan" style="display: none;">🧮 Calculer</button>
+        <div id="resultatAnalyse" style="display: none;">
+            <div class="result-box"><div class="result-title">📦 Matériaux</div><div id="resultatAnalyseContent"></div></div>
+        </div>
+    </div>
+
+    <!-- PAGE CALCULATEUR -->
+    <div class="page" id="page-calculateur">
+        <div class="tabs">
+            <div class="tab active" onclick="showCalcTab('cloison')">Cloison</div>
+            <div class="tab" onclick="showCalcTab('plafond')">Plafond</div>
+            <div class="tab" onclick="showCalcTab('doublage')">Doublage</div>
+        </div>
+        <div id="calc-cloison">
+            <div class="card">
+                <div class="card-title">📐 Dimensions</div>
+                <div class="form-row">
+                    <div class="form-group"><label>Longueur (m)</label><input type="number" id="cloisonLongueur" step="0.1" oninput="calculerCloisonAuto()"></div>
+                    <div class="form-group"><label>Hauteur (m)</label><input type="number" id="cloisonHauteur" step="0.1" oninput="calculerCloisonAuto()"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Parement</label><select id="cloisonParement" onchange="calculerCloisonAuto()"><option value="simple">Simple</option><option value="double">Double</option></select></div>
+                    <div class="form-group"><label>Entraxe</label><select id="cloisonEntraxe" onchange="calculerCloisonAuto()"><option value="60">60 cm</option><option value="40">40 cm</option></select></div>
+                </div>
+            </div>
+            <div id="resultatCloison" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">📦 Matériaux</div>
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resPlaquesNb">-</div><div class="label">Plaques</div></div>
+                        <div class="result-item"><div class="value" id="resMontants">-</div><div class="label">Montants (3m)</div></div>
+                        <div class="result-item"><div class="value" id="resRails">-</div><div class="label">Rails (3m)</div></div>
+                        <div class="result-item"><div class="value" id="resVis">-</div><div class="label">Vis</div></div>
+                    </div>
+                </div>
+                <div class="detail-calc" id="detailCalculCloison"></div>
+            </div>
+        </div>
+        <div id="calc-plafond" style="display: none;">
+            <div class="card">
+                <div class="form-row">
+                    <div class="form-group"><label>Longueur (m)</label><input type="number" id="plafondLongueur" step="0.1" oninput="calculerPlafondAuto()"></div>
+                    <div class="form-group"><label>Largeur (m)</label><input type="number" id="plafondLargeur" step="0.1" oninput="calculerPlafondAuto()"></div>
+                </div>
+            </div>
+            <div id="resultatPlafond" style="display: none;">
+                <div class="result-box">
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resPlafPlaques">-</div><div class="label">Plaques</div></div>
+                        <div class="result-item"><div class="value" id="resPlafFourrures">-</div><div class="label">Fourrures</div></div>
+                        <div class="result-item"><div class="value" id="resPlafSuspentes">-</div><div class="label">Suspentes</div></div>
+                        <div class="result-item"><div class="value" id="resPlafCornieres">-</div><div class="label">Cornières</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="calc-doublage" style="display: none;">
+            <div class="card">
+                <div class="form-row">
+                    <div class="form-group"><label>Longueur (m)</label><input type="number" id="doublageLongueur" step="0.1" oninput="calculerDoublageAuto()"></div>
+                    <div class="form-group"><label>Hauteur (m)</label><input type="number" id="doublageHauteur" step="0.1" oninput="calculerDoublageAuto()"></div>
+                </div>
+            </div>
+            <div id="resultatDoublage" style="display: none;">
+                <div class="result-box">
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resDoubPlaques">-</div><div class="label">Complexes</div></div>
+                        <div class="result-item"><div class="value" id="resDoubMAP">-</div><div class="label">MAP (kg)</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES -->
+    <div class="page" id="page-normes">
+        <div class="submenu-item" onclick="showPage('normes-cloisons')"><div class="icon">🧱</div><div class="content"><div class="title">Cloisons</div><div class="subtitle">Entraxes, hauteurs</div></div></div>
+        <div class="submenu-item" onclick="showPage('normes-plafonds')"><div class="icon">📲</div><div class="content"><div class="title">Plafonds</div><div class="subtitle">Suspendus</div></div></div>
+        <div class="submenu-item" onclick="showPage('normes-visserie')"><div class="icon">🔩</div><div class="content"><div class="title">Visserie</div><div class="subtitle">Longueurs</div></div></div>
+    </div>
+
+    <!-- PAGE NORMES CLOISONS -->
+    <div class="page" id="page-normes-cloisons">
+        <div class="breadcrumb">Normes › <span>Cloisons</span></div>
+        <div class="card">
+            <div class="section-title">Entraxe montants</div>
+            <table><tr><th>Configuration</th><th>Entraxe</th></tr><tr><td>Standard</td><td class="spec-value">60 cm</td></tr><tr><td>Carrelage</td><td class="spec-value">40 cm</td></tr></table>
+        </div>
+        <div class="card">
+            <div class="section-title">Hauteurs max (BA13, E60)</div>
+            <table><tr><th>Montant</th><th>Simple</th><th>Double</th></tr><tr><td>M48</td><td>2,50 m</td><td>3,00 m</td></tr><tr><td>M62</td><td>2,85 m</td><td>3,40 m</td></tr><tr><td>M70</td><td>3,25 m</td><td>3,85 m</td></tr><tr><td>M90</td><td>3,90 m</td><td>4,60 m</td></tr></table>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES PLAFONDS -->
+    <div class="page" id="page-normes-plafonds">
+        <div class="breadcrumb">Normes › <span>Plafonds</span></div>
+        <div class="card">
+            <table><tr><th>Pose</th><th>Entraxe</th></tr><tr><td>Perpendiculaire</td><td class="spec-value">50-60 cm</td></tr><tr><td>Parallèle</td><td class="spec-value">40 cm</td></tr></table>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES VISSERIE -->
+    <div class="page" id="page-normes-visserie">
+        <div class="breadcrumb">Normes › <span>Visserie</span></div>
+        <div class="card">
+            <table><tr><th>Config</th><th>Vis</th></tr><tr><td>1×BA13</td><td class="spec-value">25 mm</td></tr><tr><td>1×BA18</td><td class="spec-value">35 mm</td></tr><tr><td>2×BA13</td><td class="spec-value">25+45 mm</td></tr></table>
+            <ul class="rule-list" style="margin-top: 10px;"><li>Entraxe vis : 30 cm</li><li>Distance bord : ≥ 1 cm</li></ul>
+        </div>
+    </div>
+
+    <!-- PAGE HAUTEURS -->
+    <div class="page" id="page-hauteurs">
+        <div class="card">
+            <div class="card-title">📏 Hauteurs max</div>
+            <table><tr><th>Montant</th><th>E60</th><th>E40</th></tr><tr><td>M48</td><td>2,50 m</td><td>2,80 m</td></tr><tr><td>M62</td><td>2,85 m</td><td>3,20 m</td></tr><tr><td>M70</td><td>3,25 m</td><td>3,70 m</td></tr><tr><td>M90</td><td>3,90 m</td><td>4,50 m</td></tr></table>
+        </div>
+    </div>
+
+    <!-- PAGE LOCAUX -->
+    <div class="page" id="page-locaux">
+        <div class="card"><strong style="color: var(--primary);">🏠 EA - Secs</strong><p style="font-size: 0.8rem;">Chambre, séjour</p><span class="tag tag-blue">Standard</span></div>
+        <div class="card"><strong style="color: var(--primary);">🍳 EB - Moyens</strong><p style="font-size: 0.8rem;">Cuisine, WC</p><span class="tag tag-green">H1 conseillé</span></div>
+        <div class="card" style="border: 2px solid var(--warning);"><strong style="color: var(--primary);">🚿 EB+ privatif</strong><p style="font-size: 0.8rem;">SDB privée</p><span class="tag tag-green">H1 obligatoire</span></div>
+        <div class="card" style="border: 2px solid var(--danger);"><strong style="color: var(--primary);">🏢 EB+ collectif</strong><p style="font-size: 0.8rem;">Douches collectives</p><span class="tag tag-pink">BA18 ou 2×BA13</span></div>
+    </div>
+
+    <nav class="nav-bottom">
+        <button class="nav-item active" onclick="showPage('home')" id="nav-home"><span class="icon">🏠</span><span>Accueil</span></button>
+        <button class="nav-item" onclick="showPage('calculateur')" id="nav-calculateur"><span class="icon">🧮</span><span>Calcul</span></button>
+        <button class="nav-item" onclick="showPage('normes')" id="nav-normes"><span class="icon">📋</span><span>Normes</span></button>
+        <button class="nav-item" onclick="showPage('analyse-plan')" id="nav-analyse-plan"><span class="icon">🤖</span><span>IA</span></button>
+    </nav>
+
+    <script>
+        // CONFIG
+        const CONFIG_KEY = 'plaquistepro_config';
+        function getConfig() { const c = localStorage.getItem(CONFIG_KEY); return c ? JSON.parse(c) : { workerUrl: '' }; }
+        function saveConfig() { localStorage.setItem(CONFIG_KEY, JSON.stringify({ workerUrl: document.getElementById('workerUrl').value.trim() })); updateConfigStatus(); closeModal('settings'); checkAIAvailability(); alert('Enregistré !'); }
+        function updateConfigStatus() { const c = getConfig(); const s = document.getElementById('configStatus'); const i = document.getElementById('workerUrl'); if(c.workerUrl) { s.className='config-status configured'; s.innerHTML='✅ IA configurée'; i.value=c.workerUrl; } else { s.className='config-status not-configured'; s.innerHTML='❌ Non configurée'; } }
+        function checkAIAvailability() { const ok = !!getConfig().workerUrl; document.getElementById('homeConfigAlert').style.display = ok ? 'none' : 'block'; document.getElementById('aiConfigAlert').style.display = ok ? 'none' : 'block'; document.getElementById('btnAnalyseIA').disabled = !ok; }
+        async function testConnection() { const c = getConfig(); if(!c.workerUrl) { alert('Entrez une URL'); return; } try { const r = await fetch(c.workerUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:50,messages:[{role:'user',content:'OK'}]}) }); const d = await r.json(); alert(d.error ? '❌ '+d.error.message : '✅ Connexion OK !'); } catch(e) { alert('❌ '+e.message); } }
+
+        // NAV
+        let currentPage = 'home', pageHistory = [];
+        const titles = { 'home': '🔨 PlaquistePro', 'calculateur': '🧮 Calculateur', 'normes': '📋 Normes', 'normes-cloisons': '🧱 Cloisons', 'normes-plafonds': '📲 Plafonds', 'normes-visserie': '🔩 Visserie', 'analyse-plan': '🤖 Analyse IA', 'hauteurs': '📏 Hauteurs', 'locaux': '💧 Locaux', 'aide': '❓ Aide' };
+        function showPage(id) { if(currentPage!==id) pageHistory.push(currentPage); currentPage=id; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); const nav=document.getElementById('nav-'+id); if(nav) nav.classList.add('active'); if(id.startsWith('normes')) document.getElementById('nav-normes').classList.add('active'); document.getElementById('pageTitle').textContent=titles[id]||'PlaquistePro'; document.getElementById('backBtn').classList.toggle('visible',id!=='home'); }
+        function goBack() { if(pageHistory.length>0) { showPage(pageHistory.pop()); pageHistory.pop(); } else showPage('home'); }
+        function toggleAccordion(h) { h.parentElement.classList.toggle('open'); }
+        function openModal(n) { document.getElementById('modal-'+n).classList.add('active'); if(n==='settings') updateConfigStatus(); }
+        function closeModal(n) { document.getElementById('modal-'+n).classList.remove('active'); }
+        document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('active');}));
+
+        // CALCULATEURS
+        function showCalcTab(t) { document.querySelectorAll('[id^="calc-"]').forEach(c=>c.style.display='none'); document.getElementById('calc-'+t).style.display='block'; document.querySelectorAll('#page-calculateur .tab').forEach(x=>x.classList.remove('active')); event.target.classList.add('active'); }
+        function calculerCloisonAuto() { const L=parseFloat(document.getElementById('cloisonLongueur').value)||0, H=parseFloat(document.getElementById('cloisonHauteur').value)||0; if(L>0&&H>0) { const p=document.getElementById('cloisonParement').value, e=parseInt(document.getElementById('cloisonEntraxe').value), f=p==='double'?4:2, S=L*H, plaq=Math.ceil(S*f/3*1.1), rails=Math.ceil(L*2/3*1.1), mont=Math.ceil((L/(e/100)+1)*(H>2.9?2:1)*1.1), vis=Math.ceil(S*f*12); document.getElementById('resPlaquesNb').textContent=plaq; document.getElementById('resMontants').textContent=mont; document.getElementById('resRails').textContent=rails; document.getElementById('resVis').textContent=vis; document.getElementById('detailCalculCloison').innerHTML=`Rails: ${L}m×2=${L*2}ml → ${rails} barres | Montants: (${L}m÷${e/100})+1 → ${mont} barres`; document.getElementById('resultatCloison').style.display='block'; } else document.getElementById('resultatCloison').style.display='none'; }
+        function calculerPlafondAuto() { const L=parseFloat(document.getElementById('plafondLongueur').value)||0, l=parseFloat(document.getElementById('plafondLargeur').value)||0; if(L>0&&l>0) { const S=L*l; document.getElementById('resPlafPlaques').textContent=Math.ceil(S/3*1.1); document.getElementById('resPlafFourrures').textContent=Math.ceil(S*2.1/3*1.1); document.getElementById('resPlafSuspentes').textContent=Math.ceil(S*1.4); document.getElementById('resPlafCornieres').textContent=Math.ceil((L+l)*2/3*1.1); document.getElementById('resultatPlafond').style.display='block'; } else document.getElementById('resultatPlafond').style.display='none'; }
+        function calculerDoublageAuto() { const L=parseFloat(document.getElementById('doublageLongueur').value)||0, H=parseFloat(document.getElementById('doublageHauteur').value)||0; if(L>0&&H>0) { const S=L*H; document.getElementById('resDoubPlaques').textContent=Math.ceil(S/3*1.1); document.getElementById('resDoubMAP').textContent=Math.ceil(S*3); document.getElementById('resultatDoublage').style.display='block'; } else document.getElementById('resultatDoublage').style.display='none'; }
+
+        // IA
+        let planImageAI=null, aiResults=[], ouvrages=[];
+        function handlePlanUploadAI(e) { const f=e.target.files[0]; if(f) { const r=new FileReader(); r.onload=ev=>{ planImageAI=ev.target.result; document.getElementById('planPreviewAI').src=planImageAI; document.getElementById('planPreviewContainerAI').style.display='block'; document.getElementById('addPlanBtnAI').style.display='none'; document.getElementById('aiAnalysisSection').style.display='block'; }; r.readAsDataURL(f); } }
+        function removePlanAI() { planImageAI=null; document.getElementById('planPreviewContainerAI').style.display='none'; document.getElementById('addPlanBtnAI').style.display='block'; document.getElementById('aiAnalysisSection').style.display='none'; document.getElementById('aiResultsContainer').style.display='none'; document.getElementById('planInputAI').value=''; }
+        async function lancerAnalyseIA() { const c=getConfig(); if(!c.workerUrl){alert('Configurez l\'URL ⚙️');return;} if(!planImageAI){alert('Chargez un plan');return;} const st=document.getElementById('aiStatusContainer'); st.innerHTML='<div class="ai-status loading"><div class="spinner"></div>Analyse...</div>'; const h=document.getElementById('aiHauteurDefaut').value; try { const b=planImageAI.split(',')[1], m=planImageAI.split(';')[0].split(':')[1]; const r=await fetch(c.workerUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:m,data:b}},{type:'text',text:`Expert plaquiste. Analyse ce plan, identifie cloisons/ouvrages. Pour chaque: type (cloison-48,cloison-62,etc), localisation, lineaire (m), hauteur (défaut ${h}m), parement (BA13), entraxe (60). Réponds JSON: {"ouvrages":[...],"notes":"..."}`}]}]})}); const d=await r.json(); if(d.error) throw new Error(d.error.message); const t=d.content.find(x=>x.type==='text'); const j=JSON.parse(t.text.replace(/```json\n?|```\n?/g,'').trim()); if(j.ouvrages?.length>0) { aiResults=j.ouvrages; document.getElementById('aiResultsList').innerHTML=j.ouvrages.map(o=>`<div class="ouvrage-item cloison"><div class="ouvrage-type">${o.type} - ${o.localisation}</div><div class="ouvrage-details"><div class="ouvrage-detail"><div class="value">${o.lineaire}m</div><div class="label">Lin.</div></div></div></div>`).join(''); document.getElementById('aiResultsContainer').style.display='block'; st.innerHTML=`<div class="ai-status success">✓ ${j.ouvrages.length} ouvrage(s)</div>`; } else st.innerHTML='<div class="ai-status error">Aucun ouvrage détecté</div>'; } catch(e) { st.innerHTML=`<div class="ai-status error">❌ ${e.message}</div>`; } }
+        function validerAnalyseIA() { aiResults.forEach(o=>ouvrages.push({id:Date.now()+Math.random(),type:o.type,parement:o.parement||'BA13',entraxe:o.entraxe||60,localisation:o.localisation,lineaire:o.lineaire,hauteur:o.hauteur||2.5})); renderOuvrages(); document.getElementById('aiResultsContainer').style.display='none'; document.getElementById('aiStatusContainer').innerHTML=''; aiResults=[]; }
+        function ajouterOuvrage() { const loc=document.getElementById('analyseLocalisation').value, lin=parseFloat(document.getElementById('analyseLineaire').value)||0; if(!loc||!lin){alert('Remplissez localisation et linéaire');return;} ouvrages.push({id:Date.now(),type:document.getElementById('analyseTypeOuvrage').value,parement:document.getElementById('analyseParement').value,entraxe:parseInt(document.getElementById('analyseEntraxe').value),localisation:loc,lineaire:lin,hauteur:parseFloat(document.getElementById('analyseHauteur').value)||2.5}); renderOuvrages(); document.getElementById('analyseLocalisation').value=''; document.getElementById('analyseLineaire').value=''; }
+        function renderOuvrages() { const l=document.getElementById('ouvragesList'), e=document.getElementById('emptyOuvrages'), b=document.getElementById('btnCalculerPlan'); if(!ouvrages.length){l.innerHTML='';e.style.display='block';b.style.display='none';document.getElementById('resultatAnalyse').style.display='none';} else { e.style.display='none'; b.style.display='block'; l.innerHTML=ouvrages.map(o=>`<div class="ouvrage-item ${o.type.includes('cloison')?'cloison':'doublage'}"><div class="ouvrage-header"><span class="ouvrage-type">${o.type} - ${o.localisation}</span><button class="ouvrage-delete" onclick="supprimerOuvrage(${o.id})">×</button></div><div class="ouvrage-details"><div class="ouvrage-detail"><div class="value">${o.lineaire}</div><div class="label">ml</div></div><div class="ouvrage-detail"><div class="value">${o.hauteur}</div><div class="label">m</div></div><div class="ouvrage-detail"><div class="value">E${o.entraxe}</div><div class="label">${o.parement}</div></div></div></div>`).join(''); } }
+        function supprimerOuvrage(id) { ouvrages=ouvrages.filter(o=>o.id!==id); renderOuvrages(); }
+        function calculerQuantitatifPlan() { const mat={plaques:{},montants:{},rails:{},fourrures:0,suspentes:0,vis:0,map:0,bandes:0,enduit:0}; ouvrages.forEach(o=>{ const S=o.lineaire*o.hauteur, f=o.parement.startsWith('2x')?4:2; if(o.type.startsWith('cloison-')){ const t=o.type.split('-')[1]; mat.plaques[o.parement]=(mat.plaques[o.parement]||0)+Math.ceil(S*f/3*1.1); mat.rails['R'+t]=(mat.rails['R'+t]||0)+Math.ceil(o.lineaire*2/3*1.1); mat.montants['M'+t]=(mat.montants['M'+t]||0)+Math.ceil((o.lineaire/(o.entraxe/100)+1)*(o.hauteur>2.9?2:1)*1.1); mat.vis+=Math.ceil(S*f*12); mat.bandes+=Math.ceil(S*2.5); mat.enduit+=S*f*0.3; } else if(o.type==='doublage-colle'){ mat.plaques['Complexe']=(mat.plaques['Complexe']||0)+Math.ceil(S/3*1.1); mat.map+=Math.ceil(S*3); } else if(o.type.startsWith('plafond')){ mat.plaques[o.parement]=(mat.plaques[o.parement]||0)+Math.ceil(S/3*1.1); mat.fourrures+=Math.ceil(S*2.1/3*1.1); mat.suspentes+=Math.ceil(S*1.4); mat.vis+=Math.ceil(S*12); } }); let h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">'; Object.entries(mat.plaques).forEach(([t,q])=>{if(q>0)h+=`<div class="result-item"><div class="value">${Math.ceil(q)}</div><div class="label">${t}</div></div>`;}); Object.entries(mat.rails).forEach(([t,q])=>{if(q>0)h+=`<div class="result-item"><div class="value">${Math.ceil(q)}</div><div class="label">${t} (3m)</div></div>`;}); Object.entries(mat.montants).forEach(([t,q])=>{if(q>0)h+=`<div class="result-item"><div class="value">${Math.ceil(q)}</div><div class="label">${t} (3m)</div></div>`;}); if(mat.fourrures>0)h+=`<div class="result-item"><div class="value">${Math.ceil(mat.fourrures)}</div><div class="label">Fourrures</div></div>`; if(mat.suspentes>0)h+=`<div class="result-item"><div class="value">${Math.ceil(mat.suspentes)}</div><div class="label">Suspentes</div></div>`; if(mat.map>0)h+=`<div class="result-item"><div class="value">${Math.ceil(mat.map)}</div><div class="label">MAP (kg)</div></div>`; h+=`<div class="result-item"><div class="value">${Math.ceil(mat.vis)}</div><div class="label">Vis</div></div>`; h+=`<div class="result-item"><div class="value">${Math.ceil(mat.bandes)}</div><div class="label">Bandes</div></div>`; h+=`<div class="result-item"><div class="value">${Math.ceil(mat.enduit/25)}</div><div class="label">Enduit (sacs)</div></div></div>`; document.getElementById('resultatAnalyseContent').innerHTML=h; document.getElementById('resultatAnalyse').style.display='block'; }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => { checkAIAvailability(); });
+        if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+    </script>
+</body>
+</html>
