@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1E3A5F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PlaquistePro - DTU & Gestion v5</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #1E3A5F; --primary-light: #2d5a8a; --secondary: #E8F4FC;
+            --accent: #FF6B35; --success: #28a745; --warning: #ffc107; --danger: #dc3545;
+            --text: #333; --text-light: #666; --bg: #f5f5f5; --white: #fff;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1); --radius: 12px;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 70px; }
+        .header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; padding: 12px 15px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+        .header-content { display: flex; align-items: center; gap: 10px; }
+        .header h1 { font-size: 1.1rem; font-weight: 600; flex: 1; }
+        .header-subtitle { font-size: 0.7rem; opacity: 0.8; }
+        .back-btn, .settings-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .back-btn { display: none; }
+        .back-btn.visible { display: flex; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 6px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; padding: 6px 8px; color: var(--text-light); font-size: 0.6rem; cursor: pointer; border: none; background: none; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item .icon { font-size: 1.2rem; margin-bottom: 2px; }
+        .page { display: none; padding: 12px; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: var(--white); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; box-shadow: var(--shadow); }
+        .card-title { font-size: 0.9rem; font-weight: 600; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .menu-item { background: var(--white); border-radius: var(--radius); padding: 15px 10px; text-align: center; box-shadow: var(--shadow); cursor: pointer; border: 2px solid transparent; }
+        .menu-item:active { border-color: var(--primary); }
+        .menu-item .icon { font-size: 2rem; margin-bottom: 8px; }
+        .menu-item .label { font-weight: 600; color: var(--primary); font-size: 0.8rem; }
+        .menu-item .desc { font-size: 0.65rem; color: var(--text-light); margin-top: 3px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--primary); font-size: 0.8rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .btn-block { width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .result-box { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; border-radius: var(--radius); padding: 15px; margin-top: 12px; }
+        .result-title { font-size: 0.8rem; opacity: 0.9; margin-bottom: 8px; }
+        .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .result-item { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; }
+        .result-item .value { font-size: 1.3rem; font-weight: 700; }
+        .result-item .label { font-size: 0.65rem; opacity: 0.9; }
+        .info-box { background: var(--secondary); border-left: 4px solid var(--primary); padding: 10px; border-radius: 0 8px 8px 0; margin: 8px 0; font-size: 0.8rem; }
+        .info-box.warning { background: #fff3cd; border-color: var(--warning); }
+        .info-box.success { background: #d4edda; border-color: var(--success); }
+        .info-box.danger { background: #f8d7da; border-color: var(--danger); }
+        .tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .tab { padding: 8px 12px; background: var(--white); border: 2px solid #ddd; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .spec-value { font-weight: 700; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th, td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: var(--primary); color: white; font-size: 0.7rem; }
+        th:first-child, td:first-child { text-align: left; }
+        tr:nth-child(even) { background: var(--secondary); }
+        .accordion-item { background: var(--white); border-radius: var(--radius); margin-bottom: 8px; box-shadow: var(--shadow); overflow: hidden; }
+        .accordion-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--primary); font-size: 0.85rem; }
+        .accordion-header::after { content: '▼'; font-size: 0.6rem; transition: transform 0.3s; }
+        .accordion-item.open .accordion-header::after { transform: rotate(180deg); }
+        .accordion-content { display: none; padding: 0 12px 12px; }
+        .accordion-item.open .accordion-content { display: block; }
+        .section-title { font-size: 0.85rem; font-weight: 700; color: var(--primary); margin: 12px 0 8px; padding-bottom: 5px; border-bottom: 2px solid var(--primary); }
+        .rule-list { list-style: none; padding: 0; }
+        .rule-list li { padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.8rem; display: flex; gap: 8px; }
+        .rule-list li::before { content: '✔'; color: var(--success); font-weight: bold; }
+        .submenu-item { background: var(--white); border-radius: var(--radius); padding: 14px 15px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); cursor: pointer; margin-bottom: 8px; }
+        .submenu-item:active { background: var(--secondary); }
+        .submenu-item .icon { font-size: 1.5rem; }
+        .submenu-item .content { flex: 1; }
+        .submenu-item .title { font-weight: 600; color: var(--primary); font-size: 0.9rem; }
+        .submenu-item .subtitle { font-size: 0.7rem; color: var(--text-light); }
+        .ai-status { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin: 10px 0; }
+        .ai-status.loading { background: #e3f2fd; color: #1565c0; }
+        .ai-status.success { background: #d4edda; color: #155724; }
+        .ai-status.error { background: #f8d7da; color: #721c24; }
+        .spinner { width: 16px; height: 16px; border: 2px solid #1565c0; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .plan-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; background: #f0f0f0; }
+        .ouvrage-item { background: var(--bg); border-radius: 8px; padding: 10px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+        .ouvrage-item.cloison { border-color: #E91E63; }
+        .ouvrage-item.doublage { border-color: #00BCD4; }
+        .ouvrage-item.plafond { border-color: #F44336; }
+        .ouvrage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .ouvrage-type { font-weight: 600; font-size: 0.85rem; }
+        .ouvrage-delete { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
+        .ouvrage-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .ouvrage-detail { text-align: center; }
+        .ouvrage-detail .value { font-weight: 700; color: var(--primary); }
+        .ouvrage-detail .label { font-size: 0.65rem; color: var(--text-light); }
+        .empty-state { text-align: center; padding: 30px 20px; color: var(--text-light); }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
+        .tag { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 600; }
+        .tag-green { background: #d4edda; color: #155724; }
+        .tag-blue { background: #cce5ff; color: #004085; }
+        .tag-pink { background: #f8d7da; color: #721c24; }
+        .tag-yellow { background: #fff3cd; color: #856404; }
+        .breadcrumb { font-size: 0.7rem; color: var(--text-light); margin-bottom: 10px; }
+        .breadcrumb span { color: var(--primary); font-weight: 600; }
+        .detail-calc { margin-top: 10px; font-size: 0.75rem; background: var(--secondary); padding: 10px; border-radius: 8px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--white); width: 100%; max-height: 90vh; border-radius: 20px 20px 0 0; padding: 20px; overflow-y: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-title { font-size: 1.1rem; font-weight: 600; color: var(--primary); }
+        .modal-close { background: none; border: none; font-size: 1.5rem; color: var(--text-light); cursor: pointer; }
+        .config-status { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 10px; }
+        .config-status.configured { background: #d4edda; color: #155724; }
+        .config-status.not-configured { background: #f8d7da; color: #721c24; }
+        /* Chantiers */
+        .chantier-item { background: var(--white); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; gap: 12px; }
+        .chantier-item:active { background: var(--secondary); }
+        .chantier-icon { width: 45px; height: 45px; background: var(--secondary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .chantier-info { flex: 1; }
+        .chantier-name { font-weight: 600; color: var(--primary); font-size: 0.95rem; }
+        .chantier-client { font-size: 0.75rem; color: var(--text-light); }
+        .chantier-status { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: 600; }
+        .status-actif { background: #d4edda; color: #155724; }
+        .status-pause { background: #fff3cd; color: #856404; }
+        .status-termine { background: #e9ecef; color: #495057; }
+        .progress-bar { height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: var(--success); border-radius: 3px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: var(--white); border-radius: var(--radius); padding: 12px; text-align: center; box-shadow: var(--shadow); }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.7rem; color: var(--text-light); }
+        .fab { position: fixed; bottom: 80px; right: 15px; width: 56px; height: 56px; background: var(--accent); color: white; border: none; border-radius: 50%; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(255,107,53,0.4); cursor: pointer; z-index: 90; display: none; }
+        .fab.visible { display: flex; align-items: center; justify-content: center; }
+        .filter-tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .filter-tab { padding: 6px 12px; background: var(--white); border: 1px solid #ddd; border-radius: 20px; font-size: 0.75rem; cursor: pointer; }
+        .filter-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .note-item { background: #fffbcc; border-radius: 8px; padding: 10px; margin-bottom: 8px; border-left: 4px solid #ffc107; }
+        .note-date { font-size: 0.7rem; color: var(--text-light); margin-bottom: 5px; }
+        .note-content { font-size: 0.85rem; }
+        .task-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--white); border-radius: 8px; margin-bottom: 8px; box-shadow: var(--shadow); }
+        .task-item.completed { opacity: 0.6; }
+        .task-item.completed .task-text { text-decoration: line-through; }
+        .task-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--success); }
+        .task-text { flex: 1; font-size: 0.85rem; }
+        .task-delete { background: none; border: none; color: var(--danger); font-size: 1rem; cursor: pointer; }
+        .contact-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; }
+        .contact-avatar { width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .contact-info { flex: 1; }
+        .contact-name { font-weight: 600; font-size: 0.9rem; }
+        .contact-role { font-size: 0.7rem; color: var(--text-light); }
+        .contact-phone { font-size: 0.8rem; color: var(--primary); }
+        .heures-row { display: grid; grid-template-columns: 1fr 80px 60px; gap: 8px; padding: 8px 0; border-bottom: 1px solid #eee; align-items: center; }
+        .heures-row input { padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
+        .quantitatif-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 5px; padding: 6px 0; border-bottom: 1px solid #eee; align-items: center; }
+        .quantitatif-row input, .quantitatif-row select { padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem; }
+        .delete-row-btn { background: none; border: none; color: var(--danger); font-size: 1rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <button class="back-btn" id="backBtn" onclick="goBack()">←</button>
+            <div style="flex:1">
+                <h1 id="pageTitle">🔨 PlaquistePro</h1>
+                <div class="header-subtitle" id="pageSubtitle">DTU 25.41 & 25.42 - v5</div>
+            </div>
+            <button class="settings-btn" onclick="openModal('settings')">⚙️</button>
+        </div>
+    </header>
+
+    <button class="fab" id="fab" onclick="handleFabClick()">+</button>
+
+    <!-- MODAL SETTINGS -->
+    <div class="modal" id="modal-settings">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">⚙️ Configuration IA</div>
+                <button class="modal-close" onclick="closeModal('settings')">×</button>
+            </div>
+            <div id="configStatus" class="config-status not-configured">❌ IA non configurée</div>
+            <div class="info-box" style="margin-bottom: 15px;">
+                <strong>Pour activer l'analyse IA :</strong><br>
+                Configurez un proxy Cloudflare Worker avec votre clé API Claude.
+            </div>
+            <div class="form-group">
+                <label>URL du Worker Cloudflare</label>
+                <input type="url" id="workerUrl" placeholder="https://votre-worker.workers.dev">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveConfig()">💾 Enregistrer</button>
+            <button class="btn btn-outline btn-block" style="margin-top: 10px;" onclick="testConnection()">🔍 Tester la connexion</button>
+        </div>
+    </div>
+
+    <!-- MODAL NOUVEAU CHANTIER -->
+    <div class="modal" id="modal-newChantier">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🏗️ Nouveau chantier</div>
+                <button class="modal-close" onclick="closeModal('newChantier')">×</button>
+            </div>
+            <div class="form-group">
+                <label>Nom du chantier *</label>
+                <input type="text" id="newChantierNom" placeholder="ex: Rénovation Dupont">
+            </div>
+            <div class="form-group">
+                <label>Client</label>
+                <input type="text" id="newChantierClient" placeholder="ex: M. Dupont">
+            </div>
+            <div class="form-group">
+                <label>Adresse</label>
+                <input type="text" id="newChantierAdresse" placeholder="ex: 12 rue des Lilas">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date début</label>
+                    <input type="date" id="newChantierDateDebut">
+                </div>
+                <div class="form-group">
+                    <label>Date fin</label>
+                    <input type="date" id="newChantierDateFin">
+                </div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="createChantier()">✓ Créer</button>
+        </div>
+    </div>
+
+    <!-- MODAL AJOUTER NOTE -->
+    <div class="modal" id="modal-addNote">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📝 Nouvelle note</div>
+                <button class="modal-close" onclick="closeModal('addNote')">×</button>
+            </div>
+            <div class="form-group">
+                <label>Titre</label>
+                <input type="text" id="noteTitle" placeholder="ex: Réunion chantier">
+            </div>
+            <div class="form-group">
+                <label>Contenu</label>
+                <textarea id="noteContent" rows="6" placeholder="Votre note..."></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveNote()">💾 Enregistrer</button>
+        </div>
+    </div>
+
+    <!-- MODAL AJOUTER CONTACT -->
+    <div class="modal" id="modal-addContact">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">👤 Nouveau contact</div>
+                <button class="modal-close" onclick="closeModal('addContact')">×</button>
+            </div>
+            <div class="form-group">
+                <label>Nom</label>
+                <input type="text" id="contactNom" placeholder="ex: Jean Martin">
+            </div>
+            <div class="form-group">
+                <label>Rôle</label>
+                <select id="contactRole">
+                    <option value="Client">Client</option>
+                    <option value="Architecte">Architecte</option>
+                    <option value="Maître d'œuvre">Maître d'œuvre</option>
+                    <option value="Électricien">Électricien</option>
+                    <option value="Plombier">Plombier</option>
+                    <option value="Autre">Autre</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" id="contactTel" placeholder="06 12 34 56 78">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveContact()">💾 Enregistrer</button>
+        </div>
+    </div>
+
+    <!-- PAGE ACCUEIL -->
+    <div class="page active" id="page-home">
+        <div class="menu-grid">
+            <div class="menu-item" onclick="showPage('chantiers')"><div class="icon">🏗️</div><div class="label">Chantiers</div><div class="desc">Gestion & suivi</div></div>
+            <div class="menu-item" onclick="showPage('calculateur')"><div class="icon">🧮</div><div class="label">Calculateur</div><div class="desc">Quantitatifs</div></div>
+            <div class="menu-item" onclick="showPage('analyse-plan')"><div class="icon">🤖</div><div class="label">Analyse IA</div><div class="desc">Quantitatif depuis plan</div></div>
+            <div class="menu-item" onclick="showPage('normes')"><div class="icon">📋</div><div class="label">Normes DTU</div><div class="desc">Règles de mise en œuvre</div></div>
+            <div class="menu-item" onclick="showPage('hauteurs')"><div class="icon">📏</div><div class="label">Hauteurs max</div><div class="desc">Tableaux DTU</div></div>
+            <div class="menu-item" onclick="showPage('locaux')"><div class="icon">💧</div><div class="label">Locaux humides</div><div class="desc">EA, EB, EB+, EC</div></div>
+        </div>
+    </div>
+
+    <!-- PAGE CHANTIERS -->
+    <div class="page" id="page-chantiers">
+        <div class="filter-tabs">
+            <div class="filter-tab active" onclick="filterChantiers('tous')">Tous</div>
+            <div class="filter-tab" onclick="filterChantiers('actif')">En cours</div>
+            <div class="filter-tab" onclick="filterChantiers('pause')">En pause</div>
+            <div class="filter-tab" onclick="filterChantiers('termine')">Terminés</div>
+        </div>
+        <div id="chantiersList"></div>
+        <div class="empty-state" id="emptyChantiers" style="display: none;">
+            <div class="icon">🏗️</div>
+            <div>Aucun chantier<br><small>Appuyez sur + pour créer</small></div>
+        </div>
+    </div>
+
+    <!-- PAGE DETAIL CHANTIER -->
+    <div class="page" id="page-chantier-detail">
+        <div class="card" id="chantierHeader"></div>
+        <div class="tabs" id="chantierTabs">
+            <div class="tab active" onclick="showChantierTab('resume')">Résumé</div>
+            <div class="tab" onclick="showChantierTab('notes')">Notes</div>
+            <div class="tab" onclick="showChantierTab('heures')">Heures</div>
+            <div class="tab" onclick="showChantierTab('quantitatif')">Quantitatif</div>
+            <div class="tab" onclick="showChantierTab('taches')">Tâches</div>
+        </div>
+        <div id="tab-resume" class="chantier-tab-content">
+            <div class="stats-grid" id="chantierStats"></div>
+            <div class="card">
+                <div class="card-title">👤 Contacts</div>
+                <div id="contactsList"></div>
+                <button class="btn btn-outline btn-sm" style="margin-top: 10px;" onclick="openModal('addContact')">+ Ajouter</button>
+            </div>
+        </div>
+        <div id="tab-notes" class="chantier-tab-content" style="display: none;">
+            <div id="notesList"></div>
+            <div class="empty-state" id="emptyNotes" style="display: none;"><div class="icon">📝</div><div>Aucune note</div></div>
+            <button class="btn btn-primary btn-block" onclick="openModal('addNote')">✏️ Nouvelle note</button>
+        </div>
+        <div id="tab-heures" class="chantier-tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-title">⏱️ Relevé d'heures</div>
+                <div class="form-group"><input type="date" id="heuresDate"></div>
+                <div class="heures-row" style="font-weight: 600; font-size: 0.75rem;"><span>Employé</span><span>Heures</span><span>Supp.</span></div>
+                <div id="heuresList"></div>
+                <button class="btn btn-outline btn-sm" style="margin-top: 10px;" onclick="addHeuresRow()">+ Ajouter</button>
+            </div>
+            <button class="btn btn-success btn-block" onclick="saveHeures()">💾 Enregistrer</button>
+            <div class="card" style="margin-top: 15px;">
+                <div class="card-title">📊 Récapitulatif</div>
+                <div id="heuresRecap"></div>
+            </div>
+        </div>
+        <div id="tab-quantitatif" class="chantier-tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-title">📦 Quantitatif matériaux</div>
+                <div class="quantitatif-row" style="font-weight: 600; font-size: 0.7rem;"><span>Désignation</span><span>Qté</span><span>Unité</span><span></span></div>
+                <div id="quantitatifList"></div>
+                <button class="btn btn-outline btn-sm" style="margin-top: 10px;" onclick="addQuantitatifRow()">+ Ajouter</button>
+            </div>
+            <button class="btn btn-success btn-block" onclick="saveQuantitatif()">💾 Enregistrer</button>
+        </div>
+        <div id="tab-taches" class="chantier-tab-content" style="display: none;">
+            <div id="tachesList"></div>
+            <div class="empty-state" id="emptyTasks" style="display: none;"><div class="icon">✓</div><div>Aucune tâche</div></div>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <input type="text" id="newTaskInput" placeholder="Nouvelle tâche..." style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+                <button class="btn btn-primary" onclick="addTask()">+</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE ANALYSE IA -->
+    <div class="page" id="page-analyse-plan">
+        <div id="aiConfigAlert" class="info-box warning" style="display: none;">⚠️ Configurez l'IA dans ⚙️ pour utiliser l'analyse automatique</div>
+        <div class="card">
+            <div class="card-title">🤖 Analyse IA de plan</div>
+            <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px;">Photographiez un plan coté et l'IA détectera les ouvrages.</p>
+            <input type="file" id="planInputAI" accept="image/*" capture="environment" onchange="handlePlanUploadAI(event)" style="display: none;">
+            <div id="planPreviewContainerAI" style="display: none;">
+                <img id="planPreviewAI" class="plan-preview" alt="Plan">
+                <button class="btn btn-outline btn-sm btn-block" onclick="removePlanAI()">🗑️ Supprimer</button>
+            </div>
+            <button id="addPlanBtnAI" class="btn btn-primary btn-block" onclick="document.getElementById('planInputAI').click()">📷 Charger un plan</button>
+        </div>
+        <div id="aiAnalysisSection" style="display: none;">
+            <div class="card">
+                <div class="form-group">
+                    <label>Hauteur sous plafond par défaut (m)</label>
+                    <input type="number" id="aiHauteurDefaut" value="2.50" step="0.01">
+                </div>
+                <button class="btn btn-accent btn-block" id="btnAnalyseIA" onclick="lancerAnalyseIA()">🔍 Analyser avec l'IA</button>
+            </div>
+            <div id="aiStatusContainer"></div>
+            <div id="aiResultsContainer" style="display: none;">
+                <div class="card"><div class="card-title">📊 Résultats IA</div><div id="aiResultsList"></div></div>
+                <button class="btn btn-success btn-block" onclick="validerAnalyseIA()">✓ Valider et ajouter</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">✏️ Saisie manuelle</div>
+            <div class="form-group">
+                <label>Type d'ouvrage</label>
+                <select id="analyseTypeOuvrage">
+                    <option value="cloison-48">Cloison 72/48 (M48)</option>
+                    <option value="cloison-62">Cloison 98/62 (M62)</option>
+                    <option value="cloison-70">Cloison 100/70 (M70)</option>
+                    <option value="cloison-90">Cloison 120/90 (M90)</option>
+                    <option value="doublage-colle">Doublage collé</option>
+                    <option value="plafond-suspendu">Plafond suspendu</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Parement</label><select id="analyseParement"><option value="BA13">BA13</option><option value="BA13-H1">BA13 H1</option><option value="2xBA13">2×BA13</option></select></div>
+                <div class="form-group"><label>Entraxe</label><select id="analyseEntraxe"><option value="60">60 cm</option><option value="40">40 cm</option></select></div>
+            </div>
+            <div class="form-group"><label>Localisation</label><input type="text" id="analyseLocalisation" placeholder="ex: Cloison WC"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Linéaire (ml)</label><input type="number" id="analyseLineaire" step="0.01"></div>
+                <div class="form-group"><label>Hauteur (m)</label><input type="number" id="analyseHauteur" value="2.50" step="0.01"></div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="ajouterOuvrage()">➕ Ajouter</button>
+        </div>
+        <div class="card">
+            <div class="card-title">📦 Ouvrages saisis</div>
+            <div id="ouvragesList"></div>
+            <div class="empty-state" id="emptyOuvrages"><div class="icon">📝</div><div>Aucun ouvrage</div></div>
+        </div>
+        <button class="btn btn-success btn-block" onclick="calculerQuantitatifPlan()" id="btnCalculerPlan" style="display: none;">🧮 Calculer le quantitatif</button>
+        <div id="resultatAnalyse" style="display: none;">
+            <div class="result-box"><div class="result-title">📦 Récapitulatif matériaux</div><div id="resultatAnalyseContent"></div></div>
+            <button class="btn btn-outline btn-block" style="margin-top: 10px;" onclick="exporterVersChantier()">📁 Exporter vers un chantier</button>
+        </div>
+    </div>
+
+    <!-- PAGE CALCULATEUR -->
+    <div class="page" id="page-calculateur">
+        <div class="tabs">
+            <div class="tab active" onclick="showCalcTab('cloison')">Cloison</div>
+            <div class="tab" onclick="showCalcTab('plafond')">Plafond</div>
+            <div class="tab" onclick="showCalcTab('doublage')">Doublage</div>
+        </div>
+        <div id="calc-cloison">
+            <div class="card">
+                <div class="card-title">📐 Dimensions cloison</div>
+                <div class="form-row">
+                    <div class="form-group"><label>Longueur (m)</label><input type="number" id="cloisonLongueur" step="0.1" oninput="calculerCloisonAuto()"></div>
+                    <div class="form-group"><label>Hauteur (m)</label><input type="number" id="cloisonHauteur" step="0.1" oninput="calculerCloisonAuto()"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Parement</label><select id="cloisonParement" onchange="calculerCloisonAuto()"><option value="simple">Simple</option><option value="double">Double</option></select></div>
+                    <div class="form-group"><label>Entraxe</label><select id="cloisonEntraxe" onchange="calculerCloisonAuto()"><option value="60">60 cm</option><option value="40">40 cm</option></select></div>
+                </div>
+            </div>
+            <div class="info-box">
+                <strong>Rappel :</strong> Rails = sol + plafond | Montants = verticaux selon entraxe
+            </div>
+            <div id="resultatCloison" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">📦 Matériaux</div>
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resPlaquesNb">-</div><div class="label">Plaques</div></div>
+                        <div class="result-item"><div class="value" id="resMontants">-</div><div class="label">Montants (3m)</div></div>
+                        <div class="result-item"><div class="value" id="resRails">-</div><div class="label">Rails (3m)</div></div>
+                        <div class="result-item"><div class="value" id="resVis">-</div><div class="label">Vis</div></div>
+                    </div>
+                </div>
+                <div class="detail-calc" id="detailCalculCloison"></div>
+            </div>
+        </div>
+        <div id="calc-plafond" style="display: none;">
+            <div class="card">
+                <div class="card-title">📐 Dimensions pièce</div>
+                <div class="form-row">
+                    <div class="form-group"><label>Longueur (m)</label><input type="number" id="plafondLongueur" step="0.1" oninput="calculerPlafondAuto()"></div>
+                    <div class="form-group"><label>Largeur (m)</label><input type="number" id="plafondLargeur" step="0.1" oninput="calculerPlafondAuto()"></div>
+                </div>
+            </div>
+            <div id="resultatPlafond" style="display: none;">
+                <div class="result-box">
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resPlafPlaques">-</div><div class="label">Plaques</div></div>
+                        <div class="result-item"><div class="value" id="resPlafFourrures">-</div><div class="label">Fourrures (3m)</div></div>
+                        <div class="result-item"><div class="value" id="resPlafSuspentes">-</div><div class="label">Suspentes</div></div>
+                        <div class="result-item"><div class="value" id="resPlafCornieres">-</div><div class="label">Cornières (3m)</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="calc-doublage" style="display: none;">
+            <div class="card">
+                <div class="card-title">📐 Surface mur</div>
+                <div class="form-row">
+                    <div class="form-group"><label>Longueur (m)</label><input type="number" id="doublageLongueur" step="0.1" oninput="calculerDoublageAuto()"></div>
+                    <div class="form-group"><label>Hauteur (m)</label><input type="number" id="doublageHauteur" step="0.1" oninput="calculerDoublageAuto()"></div>
+                </div>
+            </div>
+            <div id="resultatDoublage" style="display: none;">
+                <div class="result-box">
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resDoubPlaques">-</div><div class="label">Complexes</div></div>
+                        <div class="result-item"><div class="value" id="resDoubMAP">-</div><div class="label">MAP (kg)</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES -->
+    <div class="page" id="page-normes">
+        <div class="submenu-item" onclick="showPage('normes-cloisons')"><div class="icon">🧱</div><div class="content"><div class="title">Cloisons</div><div class="subtitle">Entraxes, hauteurs max</div></div></div>
+        <div class="submenu-item" onclick="showPage('normes-plafonds')"><div class="icon">📲</div><div class="content"><div class="title">Plafonds</div><div class="subtitle">Suspendus, autoportants</div></div></div>
+        <div class="submenu-item" onclick="showPage('normes-visserie')"><div class="icon">🔩</div><div class="content"><div class="title">Visserie</div><div class="subtitle">Longueurs, entraxes</div></div></div>
+        <div class="submenu-item" onclick="showPage('normes-joints')"><div class="icon">🎨</div><div class="content"><div class="title">Joints</div><div class="subtitle">Traitement, finitions</div></div></div>
+    </div>
+
+    <!-- PAGE NORMES CLOISONS -->
+    <div class="page" id="page-normes-cloisons">
+        <div class="breadcrumb">Normes › <span>Cloisons</span></div>
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">📐 Entraxe des montants</div>
+            <div class="accordion-content">
+                <table><tr><th>Configuration</th><th>Entraxe</th></tr><tr><td>Standard (plaques 120 cm)</td><td class="spec-value">60 cm</td></tr><tr><td>Carrelage > 1600 cm²</td><td class="spec-value">40 cm</td></tr><tr><td>Hygrométrie > 80%</td><td class="spec-value">40 cm max</td></tr></table>
+                <div class="info-box" style="margin-top: 10px;"><strong>Fixation rails :</strong> tous les 60 cm max, à ≥ 5 cm du bord dalle.</div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">📏 Hauteurs max (BA13, E60)</div>
+            <div class="accordion-content">
+                <div class="section-title">Simple parement</div>
+                <table><tr><th>Montant</th><th>H max</th></tr><tr><td>M48-35</td><td>2,50 m</td></tr><tr><td>M62-40</td><td>2,85 m</td></tr><tr><td>M70-35</td><td>3,25 m</td></tr><tr><td>M90-35</td><td>3,90 m</td></tr></table>
+                <div class="section-title">Double parement (2×BA13)</div>
+                <table><tr><th>Montant</th><th>H max</th></tr><tr><td>M48-35</td><td>3,00 m</td></tr><tr><td>M62-40</td><td>3,40 m</td></tr><tr><td>M70-35</td><td>3,85 m</td></tr><tr><td>M90-35</td><td>4,60 m</td></tr></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES PLAFONDS -->
+    <div class="page" id="page-normes-plafonds">
+        <div class="breadcrumb">Normes › <span>Plafonds</span></div>
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">🔗 Plafonds sur fourrures S47</div>
+            <div class="accordion-content">
+                <table><tr><th>Pose plaques</th><th>Entraxe</th></tr><tr><td>Perpendiculaire</td><td class="spec-value">50 ou 60 cm</td></tr><tr><td>Parallèle</td><td class="spec-value">40 cm max</td></tr></table>
+                <div class="section-title">Distance max suspentes</div>
+                <table><tr><th>Entraxe</th><th>1×BA13</th><th>2×BA13</th></tr><tr><td>50 cm</td><td>1,20 m</td><td>1,15 m</td></tr><tr><td>60 cm</td><td>1,20 m</td><td>1,00 m</td></tr></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES VISSERIE -->
+    <div class="page" id="page-normes-visserie">
+        <div class="breadcrumb">Normes › <span>Visserie</span></div>
+        <div class="card">
+            <div class="card-title">🔩 Longueur des vis</div>
+            <table><tr><th>Configuration</th><th>Vis</th></tr><tr><td>1 × BA13</td><td class="spec-value">25 mm</td></tr><tr><td>1 × BA18</td><td class="spec-value">35 mm</td></tr><tr><td>2 × BA13</td><td class="spec-value">25 + 45 mm</td></tr></table>
+        </div>
+        <div class="card">
+            <div class="card-title">📏 Règles de vissage</div>
+            <ul class="rule-list"><li>Entraxe vis : <span class="spec-value">30 cm</span></li><li>Distance bord plaque : <span class="spec-value">≥ 1 cm</span></li><li>Pénétration acier : <span class="spec-value">≥ 10 mm</span></li><li>Vissage en quinconce : <span class="spec-value">INTERDIT</span></li></ul>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES JOINTS -->
+    <div class="page" id="page-normes-joints">
+        <div class="breadcrumb">Normes › <span>Joints</span></div>
+        <div class="card">
+            <div class="card-title">🎨 Traitement des joints</div>
+            <ul class="rule-list"><li><strong>1ère couche :</strong> garnissage + pose bande</li><li><strong>2ème couche :</strong> maintien de la bande</li><li><strong>3ème couche :</strong> finition (lissage)</li><li>Séchage entre couches : <span class="spec-value">12 à 48h</span></li></ul>
+        </div>
+        <div class="card">
+            <div class="card-title">✂️ Joints de fractionnement</div>
+            <ul class="rule-list"><li>Distance max : <span class="spec-value">25 m</span></li><li>Surface max : <span class="spec-value">300 m²</span></li></ul>
+        </div>
+    </div>
+
+    <!-- PAGE HAUTEURS -->
+    <div class="page" id="page-hauteurs">
+        <div class="card">
+            <div class="card-title">📏 Hauteurs max cloisons (E60)</div>
+            <table><tr><th>Montant</th><th>Simple BA13</th><th>Double 2×BA13</th></tr><tr><td>M48</td><td>2,50 m</td><td>3,00 m</td></tr><tr><td>M62</td><td>2,85 m</td><td>3,40 m</td></tr><tr><td>M70</td><td>3,25 m</td><td>3,85 m</td></tr><tr><td>M90</td><td>3,90 m</td><td>4,60 m</td></tr></table>
+        </div>
+        <div class="card">
+            <div class="card-title">📏 Hauteurs max (E40)</div>
+            <table><tr><th>Montant</th><th>Simple BA13</th><th>Double 2×BA13</th></tr><tr><td>M48</td><td>2,80 m</td><td>3,40 m</td></tr><tr><td>M62</td><td>3,20 m</td><td>3,90 m</td></tr><tr><td>M70</td><td>3,70 m</td><td>4,40 m</td></tr><tr><td>M90</td><td>4,50 m</td><td>5,30 m</td></tr></table>
+        </div>
+    </div>
+
+    <!-- PAGE LOCAUX HUMIDES -->
+    <div class="page" id="page-locaux">
+        <div class="card"><strong style="color: var(--primary);">🏠 EA - Locaux secs</strong><p style="font-size: 0.8rem; margin: 5px 0;">Chambre, séjour, couloir</p><span class="tag tag-blue">Plaques standards</span></div>
+        <div class="card"><strong style="color: var(--primary);">🍳 EB - Moyennement humides</strong><p style="font-size: 0.8rem; margin: 5px 0;">Cuisine, WC</p><span class="tag tag-green">H1 conseillé</span></div>
+        <div class="card" style="border: 2px solid var(--warning);"><strong style="color: var(--primary);">🚿 EB+ privatif</strong><p style="font-size: 0.8rem; margin: 5px 0;">Salle de bains privée</p><span class="tag tag-green">H1 OBLIGATOIRE</span><div class="info-box warning" style="margin-top: 8px; font-size: 0.75rem;">Entraxe 40 cm si carrelage > 1600 cm²</div></div>
+        <div class="card" style="border: 2px solid var(--danger);"><strong style="color: var(--primary);">🏢 EB+ collectif</strong><p style="font-size: 0.8rem; margin: 5px 0;">Douches collectives, sanitaires ERP</p><span class="tag tag-green">H1 OBLIGATOIRE</span><span class="tag tag-pink">BA18 ou 2×BA13</span></div>
+    </div>
+
+    <nav class="nav-bottom">
+        <button class="nav-item active" onclick="showPage('home')" id="nav-home"><span class="icon">🏠</span><span>Accueil</span></button>
+        <button class="nav-item" onclick="showPage('chantiers')" id="nav-chantiers"><span class="icon">🏗️</span><span>Chantiers</span></button>
+        <button class="nav-item" onclick="showPage('calculateur')" id="nav-calculateur"><span class="icon">🧮</span><span>Calcul</span></button>
+        <button class="nav-item" onclick="showPage('analyse-plan')" id="nav-analyse-plan"><span class="icon">🤖</span><span>IA</span></button>
+        <button class="nav-item" onclick="showPage('normes')" id="nav-normes"><span class="icon">📋</span><span>Normes</span></button>
+    </nav>
+
+    <script>
+        // =====================
+        // BASE DE DONNÉES IndexedDB
+        // =====================
+        let db;
+        const DB_NAME = 'PlaquisteProDB';
+        const DB_VERSION = 2;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => { db = request.result; resolve(db); };
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    ['chantiers', 'notes', 'heures', 'quantitatif', 'taches', 'contacts'].forEach(name => {
+                        if (!database.objectStoreNames.contains(name)) {
+                            const store = database.createObjectStore(name, { keyPath: 'id', autoIncrement: true });
+                            if (name !== 'chantiers') store.createIndex('chantierId', 'chantierId', { unique: false });
+                        }
+                    });
+                };
+            });
+        }
+
+        function dbAdd(store, data) { return new Promise((res, rej) => { const req = db.transaction(store, 'readwrite').objectStore(store).add(data); req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); }); }
+        function dbGetAll(store) { return new Promise((res, rej) => { const req = db.transaction(store, 'readonly').objectStore(store).getAll(); req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); }); }
+        function dbGet(store, id) { return new Promise((res, rej) => { const req = db.transaction(store, 'readonly').objectStore(store).get(id); req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); }); }
+        function dbUpdate(store, data) { return new Promise((res, rej) => { const req = db.transaction(store, 'readwrite').objectStore(store).put(data); req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); }); }
+        function dbDelete(store, id) { return new Promise((res, rej) => { const req = db.transaction(store, 'readwrite').objectStore(store).delete(id); req.onsuccess = () => res(); req.onerror = () => rej(req.error); }); }
+        function dbGetByIndex(store, index, value) { return new Promise((res, rej) => { const req = db.transaction(store, 'readonly').objectStore(store).index(index).getAll(value); req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); }); }
+
+        // =====================
+        // CONFIGURATION IA
+        // =====================
+        const CONFIG_KEY = 'plaquistepro_config';
+        function getConfig() { const c = localStorage.getItem(CONFIG_KEY); return c ? JSON.parse(c) : { workerUrl: '' }; }
+        function saveConfig() { localStorage.setItem(CONFIG_KEY, JSON.stringify({ workerUrl: document.getElementById('workerUrl').value.trim() })); updateConfigStatus(); closeModal('settings'); checkAIAvailability(); alert('Configuration enregistrée !'); }
+        function updateConfigStatus() { const c = getConfig(); const s = document.getElementById('configStatus'); const i = document.getElementById('workerUrl'); if(c.workerUrl) { s.className='config-status configured'; s.innerHTML='✅ IA configurée'; i.value=c.workerUrl; } else { s.className='config-status not-configured'; s.innerHTML='❌ IA non configurée'; } }
+        function checkAIAvailability() { const ok = !!getConfig().workerUrl; document.getElementById('aiConfigAlert').style.display = ok ? 'none' : 'block'; const btn = document.getElementById('btnAnalyseIA'); if(btn) btn.disabled = !ok; }
+        async function testConnection() { const c = getConfig(); if(!c.workerUrl) { alert('Entrez une URL'); return; } try { const r = await fetch(c.workerUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:50,messages:[{role:'user',content:'Réponds OK'}]}) }); const d = await r.json(); alert(d.error ? '❌ Erreur: '+d.error.message : '✅ Connexion réussie !'); } catch(e) { alert('❌ Erreur: '+e.message); } }
+
+        // =====================
+        // NAVIGATION
+        // =====================
+        let currentPage = 'home', pageHistory = [], currentChantier = null, currentFilter = 'tous';
+        const titles = { 'home':'🔨 PlaquistePro', 'chantiers':'🏗️ Chantiers', 'chantier-detail':'📋 Chantier', 'calculateur':'🧮 Calculateur', 'analyse-plan':'🤖 Analyse IA', 'normes':'📋 Normes DTU', 'normes-cloisons':'🧱 Cloisons', 'normes-plafonds':'📲 Plafonds', 'normes-visserie':'🔩 Visserie', 'normes-joints':'🎨 Joints', 'hauteurs':'📏 Hauteurs', 'locaux':'💧 Locaux humides' };
+
+        function showPage(id) {
+            if(currentPage !== id) pageHistory.push(currentPage);
+            currentPage = id;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const nav = document.getElementById('nav-' + id);
+            if(nav) nav.classList.add('active');
+            if(id.startsWith('normes')) document.getElementById('nav-normes').classList.add('active');
+            if(id === 'chantier-detail') document.getElementById('nav-chantiers').classList.add('active');
+            document.getElementById('pageTitle').textContent = titles[id] || 'PlaquistePro';
+            document.getElementById('backBtn').classList.toggle('visible', id !== 'home');
+            document.getElementById('fab').classList.toggle('visible', id === 'chantiers');
+            if(id === 'chantiers') loadChantiers();
+        }
+
+        function goBack() { if(pageHistory.length > 0) { const p = pageHistory.pop(); showPage(p); pageHistory.pop(); } else showPage('home'); }
+        function handleFabClick() { if(currentPage === 'chantiers') openModal('newChantier'); }
+        function toggleAccordion(h) { h.parentElement.classList.toggle('open'); }
+        function openModal(n) { document.getElementById('modal-'+n).classList.add('active'); if(n==='settings') updateConfigStatus(); }
+        function closeModal(n) { document.getElementById('modal-'+n).classList.remove('active'); }
+        document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if(e.target === m) m.classList.remove('active'); }));
+
+        // =====================
+        // CHANTIERS
+        // =====================
+        async function loadChantiers() {
+            const chantiers = await dbGetAll('chantiers');
+            let filtered = currentFilter === 'tous' ? chantiers : chantiers.filter(c => c.status === currentFilter);
+            const list = document.getElementById('chantiersList');
+            const empty = document.getElementById('emptyChantiers');
+            if(filtered.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; }
+            else {
+                empty.style.display = 'none';
+                list.innerHTML = filtered.map(c => `
+                    <div class="chantier-item" onclick="openChantier(${c.id})">
+                        <div class="chantier-icon">🏠</div>
+                        <div class="chantier-info">
+                            <div class="chantier-name">${c.nom}</div>
+                            <div class="chantier-client">${c.client || 'Pas de client'}</div>
+                            <span class="chantier-status status-${c.status}">${{actif:'En cours',pause:'En pause',termine:'Terminé'}[c.status]}</span>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${c.avancement || 0}%"></div></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function filterChantiers(filter) { currentFilter = filter; document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active')); event.target.classList.add('active'); loadChantiers(); }
+
+        async function createChantier() {
+            const nom = document.getElementById('newChantierNom').value.trim();
+            if(!nom) { alert('Entrez un nom'); return; }
+            await dbAdd('chantiers', { nom, client: document.getElementById('newChantierClient').value.trim(), adresse: document.getElementById('newChantierAdresse').value.trim(), dateDebut: document.getElementById('newChantierDateDebut').value, dateFin: document.getElementById('newChantierDateFin').value, status: 'actif', avancement: 0, createdAt: new Date().toISOString() });
+            closeModal('newChantier');
+            ['newChantierNom','newChantierClient','newChantierAdresse'].forEach(id => document.getElementById(id).value = '');
+            loadChantiers();
+        }
+
+        async function openChantier(id) {
+            currentChantier = await dbGet('chantiers', id);
+            if(!currentChantier) return;
+            document.getElementById('pageTitle').textContent = currentChantier.nom;
+            await loadChantierDetail();
+            showPage('chantier-detail');
+        }
+
+        async function loadChantierDetail() {
+            if(!currentChantier) return;
+            document.getElementById('chantierHeader').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div><div style="font-size: 0.8rem; color: var(--text-light);">${currentChantier.adresse || ''}</div><span class="chantier-status status-${currentChantier.status}">${{actif:'En cours',pause:'En pause',termine:'Terminé'}[currentChantier.status]}</span></div>
+                    <select onchange="updateChantierStatus(this.value)" style="padding: 5px; border-radius: 5px; border: 1px solid #ddd;"><option value="actif" ${currentChantier.status==='actif'?'selected':''}>En cours</option><option value="pause" ${currentChantier.status==='pause'?'selected':''}>En pause</option><option value="termine" ${currentChantier.status==='termine'?'selected':''}>Terminé</option></select>
+                </div>
+                <div style="margin-top: 12px;"><label style="font-size: 0.75rem;">Avancement: ${currentChantier.avancement || 0}%</label><input type="range" min="0" max="100" value="${currentChantier.avancement || 0}" onchange="updateAvancement(this.value)" style="width: 100%;"></div>
+            `;
+            await Promise.all([loadChantierStats(), loadContacts(), loadNotes(), loadHeures(), loadQuantitatif(), loadTaches()]);
+        }
+
+        async function loadChantierStats() {
+            const [notes, heures, tasks] = await Promise.all([dbGetByIndex('notes', 'chantierId', currentChantier.id), dbGetByIndex('heures', 'chantierId', currentChantier.id), dbGetByIndex('taches', 'chantierId', currentChantier.id)]);
+            const totalHeures = heures.reduce((s, h) => s + (parseFloat(h.heures) || 0), 0);
+            const tasksDone = tasks.filter(t => t.completed).length;
+            document.getElementById('chantierStats').innerHTML = `<div class="stat-card"><div class="stat-value">${notes.length}</div><div class="stat-label">Notes</div></div><div class="stat-card"><div class="stat-value">${totalHeures.toFixed(1)}h</div><div class="stat-label">Heures</div></div><div class="stat-card"><div class="stat-value">${tasksDone}/${tasks.length}</div><div class="stat-label">Tâches</div></div><div class="stat-card"><div class="stat-value">${currentChantier.avancement||0}%</div><div class="stat-label">Avancement</div></div>`;
+        }
+
+        async function updateChantierStatus(status) { currentChantier.status = status; await dbUpdate('chantiers', currentChantier); loadChantierDetail(); }
+        async function updateAvancement(value) { currentChantier.avancement = parseInt(value); await dbUpdate('chantiers', currentChantier); loadChantierStats(); }
+        function showChantierTab(tab) { document.querySelectorAll('.chantier-tab-content').forEach(c => c.style.display = 'none'); document.getElementById('tab-' + tab).style.display = 'block'; document.querySelectorAll('#chantierTabs .tab').forEach(t => t.classList.remove('active')); event.target.classList.add('active'); }
+
+        // Contacts
+        async function loadContacts() { const contacts = await dbGetByIndex('contacts', 'chantierId', currentChantier.id); document.getElementById('contactsList').innerHTML = contacts.length === 0 ? '<div style="font-size: 0.8rem; color: var(--text-light);">Aucun contact</div>' : contacts.map(c => `<div class="contact-item"><div class="contact-avatar">${c.nom.charAt(0)}</div><div class="contact-info"><div class="contact-name">${c.nom}</div><div class="contact-role">${c.role}</div>${c.tel ? `<div class="contact-phone"><a href="tel:${c.tel}">${c.tel}</a></div>` : ''}</div></div>`).join(''); }
+        async function saveContact() { const nom = document.getElementById('contactNom').value.trim(); if(!nom) { alert('Entrez un nom'); return; } await dbAdd('contacts', { chantierId: currentChantier.id, nom, role: document.getElementById('contactRole').value, tel: document.getElementById('contactTel').value.trim() }); closeModal('addContact'); document.getElementById('contactNom').value = ''; document.getElementById('contactTel').value = ''; loadContacts(); }
+
+        // Notes
+        async function loadNotes() { const notes = await dbGetByIndex('notes', 'chantierId', currentChantier.id); const list = document.getElementById('notesList'); const empty = document.getElementById('emptyNotes'); if(notes.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; } else { empty.style.display = 'none'; notes.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); list.innerHTML = notes.map(n => `<div class="note-item"><div class="note-date">${n.title || 'Sans titre'} • ${new Date(n.createdAt).toLocaleDateString('fr-FR')}</div><div class="note-content">${n.content}</div><button class="btn btn-sm btn-outline" style="margin-top: 8px;" onclick="deleteNote(${n.id})">🗑</button></div>`).join(''); } }
+        async function saveNote() { const content = document.getElementById('noteContent').value.trim(); if(!content) { alert('Entrez du contenu'); return; } await dbAdd('notes', { chantierId: currentChantier.id, title: document.getElementById('noteTitle').value.trim(), content, createdAt: new Date().toISOString() }); closeModal('addNote'); document.getElementById('noteTitle').value = ''; document.getElementById('noteContent').value = ''; loadNotes(); loadChantierStats(); }
+        async function deleteNote(id) { if(confirm('Supprimer ?')) { await dbDelete('notes', id); loadNotes(); loadChantierStats(); } }
+
+        // Heures
+        let heuresRows = [];
+        async function loadHeures() { const heures = await dbGetByIndex('heures', 'chantierId', currentChantier.id); const recap = {}; heures.forEach(h => { if(!recap[h.employe]) recap[h.employe] = { heures: 0, supp: 0 }; recap[h.employe].heures += parseFloat(h.heures) || 0; recap[h.employe].supp += parseFloat(h.supp) || 0; }); document.getElementById('heuresRecap').innerHTML = Object.keys(recap).length === 0 ? '<div style="font-size: 0.8rem; color: var(--text-light);">Aucune heure</div>' : Object.entries(recap).map(([emp, data]) => `<div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee;"><span>${emp}</span><span><strong>${data.heures.toFixed(1)}h</strong> + ${data.supp.toFixed(1)}h supp</span></div>`).join(''); document.getElementById('heuresDate').valueAsDate = new Date(); heuresRows = [{ employe: '', heures: '', supp: '' }]; renderHeuresRows(); }
+        function renderHeuresRows() { document.getElementById('heuresList').innerHTML = heuresRows.map((r, i) => `<div class="heures-row"><input type="text" placeholder="Nom" value="${r.employe}" onchange="heuresRows[${i}].employe = this.value"><input type="number" placeholder="0" step="0.5" value="${r.heures}" onchange="heuresRows[${i}].heures = this.value"><input type="number" placeholder="0" step="0.5" value="${r.supp}" onchange="heuresRows[${i}].supp = this.value"></div>`).join(''); }
+        function addHeuresRow() { heuresRows.push({ employe: '', heures: '', supp: '' }); renderHeuresRows(); }
+        async function saveHeures() { const date = document.getElementById('heuresDate').value; if(!date) { alert('Sélectionnez une date'); return; } for(const row of heuresRows) { if(row.employe && (row.heures || row.supp)) { await dbAdd('heures', { chantierId: currentChantier.id, date, employe: row.employe, heures: parseFloat(row.heures) || 0, supp: parseFloat(row.supp) || 0, createdAt: new Date().toISOString() }); } } loadHeures(); loadChantierStats(); alert('Heures enregistrées !'); }
+
+        // Quantitatif
+        let quantitatifRows = [];
+        async function loadQuantitatif() { const items = await dbGetByIndex('quantitatif', 'chantierId', currentChantier.id); quantitatifRows = items.length > 0 ? items : [{ designation: '', qte: '', unite: 'u' }]; renderQuantitatifRows(); }
+        function renderQuantitatifRows() { document.getElementById('quantitatifList').innerHTML = quantitatifRows.map((r, i) => `<div class="quantitatif-row"><input type="text" placeholder="Désignation" value="${r.designation || ''}" onchange="quantitatifRows[${i}].designation = this.value"><input type="number" placeholder="0" value="${r.qte || ''}" onchange="quantitatifRows[${i}].qte = this.value"><select onchange="quantitatifRows[${i}].unite = this.value"><option value="u" ${r.unite==='u'?'selected':''}>u</option><option value="ml" ${r.unite==='ml'?'selected':''}>ml</option><option value="m²" ${r.unite==='m²'?'selected':''}>m²</option><option value="kg" ${r.unite==='kg'?'selected':''}>kg</option></select><button class="delete-row-btn" onclick="deleteQuantitatifRow(${i})">×</button></div>`).join(''); }
+        function addQuantitatifRow() { quantitatifRows.push({ designation: '', qte: '', unite: 'u' }); renderQuantitatifRows(); }
+        function deleteQuantitatifRow(i) { quantitatifRows.splice(i, 1); if(quantitatifRows.length === 0) quantitatifRows.push({ designation: '', qte: '', unite: 'u' }); renderQuantitatifRows(); }
+        async function saveQuantitatif() { const old = await dbGetByIndex('quantitatif', 'chantierId', currentChantier.id); for(const item of old) await dbDelete('quantitatif', item.id); for(const row of quantitatifRows) { if(row.designation) { await dbAdd('quantitatif', { chantierId: currentChantier.id, designation: row.designation, qte: row.qte, unite: row.unite }); } } alert('Quantitatif enregistré !'); }
+
+        // Tâches
+        async function loadTaches() { const tasks = await dbGetByIndex('taches', 'chantierId', currentChantier.id); const list = document.getElementById('tachesList'); const empty = document.getElementById('emptyTasks'); if(tasks.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; } else { empty.style.display = 'none'; list.innerHTML = tasks.map(t => `<div class="task-item ${t.completed ? 'completed' : ''}"><input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})"><span class="task-text">${t.text}</span><button class="task-delete" onclick="deleteTask(${t.id})">×</button></div>`).join(''); } }
+        async function addTask() { const input = document.getElementById('newTaskInput'); const text = input.value.trim(); if(!text) return; await dbAdd('taches', { chantierId: currentChantier.id, text, completed: false, createdAt: new Date().toISOString() }); input.value = ''; loadTaches(); loadChantierStats(); }
+        async function toggleTask(id) { const task = await dbGet('taches', id); task.completed = !task.completed; await dbUpdate('taches', task); loadTaches(); loadChantierStats(); }
+        async function deleteTask(id) { await dbDelete('taches', id); loadTaches(); loadChantierStats(); }
+
+        // =====================
+        // CALCULATEURS (CORRIGÉS)
+        // =====================
+        function showCalcTab(t) { document.querySelectorAll('[id^="calc-"]').forEach(c => c.style.display = 'none'); document.getElementById('calc-' + t).style.display = 'block'; document.querySelectorAll('#page-calculateur .tab').forEach(x => x.classList.remove('active')); event.target.classList.add('active'); }
+
+        function calculerCloisonAuto() {
+            const L = parseFloat(document.getElementById('cloisonLongueur').value) || 0;
+            const H = parseFloat(document.getElementById('cloisonHauteur').value) || 0;
+            if(L > 0 && H > 0) {
+                const p = document.getElementById('cloisonParement').value;
+                const e = parseInt(document.getElementById('cloisonEntraxe').value);
+                const f = p === 'double' ? 4 : 2;
+                const S = L * H;
+                const coef = 1.10;
+                // Plaques
+                const plaq = Math.ceil((S * f / 3) * coef);
+                // Rails : sol + plafond = L × 2, puis barres de 3m
+                const mlRails = L * 2;
+                const rails = Math.ceil((mlRails / 3) * coef);
+                // Montants : verticaux, (L / entraxe) + 1
+                const nbMontantsTheo = Math.ceil(L / (e / 100)) + 1;
+                const barresParMontant = H > 2.9 ? 2 : 1;
+                const mont = Math.ceil(nbMontantsTheo * barresParMontant * coef);
+                const vis = Math.ceil(S * f * 12);
+                document.getElementById('resPlaquesNb').textContent = plaq;
+                document.getElementById('resMontants').textContent = mont;
+                document.getElementById('resRails').textContent = rails;
+                document.getElementById('resVis').textContent = vis;
+                document.getElementById('detailCalculCloison').innerHTML = `<strong>Détail :</strong><br>• Rails: ${L}m × 2 = ${mlRails}ml → <strong>${rails} barres 3m</strong><br>• Montants: (${L}m ÷ ${e/100}m) + 1 = ${nbMontantsTheo}${barresParMontant > 1 ? ' × 2 (éclissage)' : ''} → <strong>${mont} barres 3m</strong><br>• Plaques: ${S.toFixed(1)}m² × ${f} faces → <strong>${plaq} plaques</strong>`;
+                document.getElementById('resultatCloison').style.display = 'block';
+            } else { document.getElementById('resultatCloison').style.display = 'none'; }
+        }
+
+        function calculerPlafondAuto() {
+            const L = parseFloat(document.getElementById('plafondLongueur').value) || 0;
+            const l = parseFloat(document.getElementById('plafondLargeur').value) || 0;
+            if(L > 0 && l > 0) {
+                const S = L * l, coef = 1.10;
+                document.getElementById('resPlafPlaques').textContent = Math.ceil(S / 3 * coef);
+                document.getElementById('resPlafFourrures').textContent = Math.ceil(S * 2.1 / 3 * coef);
+                document.getElementById('resPlafSuspentes').textContent = Math.ceil(S * 1.4);
+                document.getElementById('resPlafCornieres').textContent = Math.ceil((L + l) * 2 / 3 * coef);
+                document.getElementById('resultatPlafond').style.display = 'block';
+            } else { document.getElementById('resultatPlafond').style.display = 'none'; }
+        }
+
+        function calculerDoublageAuto() {
+            const L = parseFloat(document.getElementById('doublageLongueur').value) || 0;
+            const H = parseFloat(document.getElementById('doublageHauteur').value) || 0;
+            if(L > 0 && H > 0) {
+                const S = L * H, coef = 1.10;
+                document.getElementById('resDoubPlaques').textContent = Math.ceil(S / 3 * coef);
+                document.getElementById('resDoubMAP').textContent = Math.ceil(S * 3);
+                document.getElementById('resultatDoublage').style.display = 'block';
+            } else { document.getElementById('resultatDoublage').style.display = 'none'; }
+        }
+
+        // =====================
+        // ANALYSE IA
+        // =====================
+        let planImageAI = null, aiResults = [], ouvrages = [];
+
+        function handlePlanUploadAI(e) {
+            const f = e.target.files[0];
+            if(f) {
+                const r = new FileReader();
+                r.onload = ev => {
+                    planImageAI = ev.target.result;
+                    document.getElementById('planPreviewAI').src = planImageAI;
+                    document.getElementById('planPreviewContainerAI').style.display = 'block';
+                    document.getElementById('addPlanBtnAI').style.display = 'none';
+                    document.getElementById('aiAnalysisSection').style.display = 'block';
+                };
+                r.readAsDataURL(f);
+            }
+        }
+
+        function removePlanAI() {
+            planImageAI = null;
+            document.getElementById('planPreviewContainerAI').style.display = 'none';
+            document.getElementById('addPlanBtnAI').style.display = 'block';
+            document.getElementById('aiAnalysisSection').style.display = 'none';
+            document.getElementById('aiResultsContainer').style.display = 'none';
+            document.getElementById('planInputAI').value = '';
+        }
+
+        async function lancerAnalyseIA() {
+            const c = getConfig();
+            if(!c.workerUrl) { alert('Configurez l\'URL du Worker dans ⚙️'); return; }
+            if(!planImageAI) { alert('Chargez un plan'); return; }
+            const st = document.getElementById('aiStatusContainer');
+            st.innerHTML = '<div class="ai-status loading"><div class="spinner"></div>Analyse en cours...</div>';
+            const h = document.getElementById('aiHauteurDefaut').value;
+            try {
+                const b = planImageAI.split(',')[1], m = planImageAI.split(';')[0].split(':')[1];
+                const r = await fetch(c.workerUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: m, data: b } }, { type: 'text', text: `Expert plaquiste. Analyse ce plan et identifie les ouvrages (cloisons, doublages, plafonds). Pour chaque: type (cloison-48, cloison-62, cloison-70, cloison-90, doublage-colle, plafond-suspendu), localisation, lineaire (m), hauteur (défaut ${h}m), parement (BA13, BA13-H1, 2xBA13), entraxe (60 ou 40). Réponds UNIQUEMENT JSON: {"ouvrages":[...],"notes":"..."}` }] }] }) });
+                const d = await r.json();
+                if(d.error) throw new Error(d.error.message);
+                const t = d.content.find(x => x.type === 'text');
+                const j = JSON.parse(t.text.replace(/```json\n?|```\n?/g, '').trim());
+                if(j.ouvrages?.length > 0) {
+                    aiResults = j.ouvrages;
+                    document.getElementById('aiResultsList').innerHTML = j.ouvrages.map(o => `<div class="ouvrage-item ${o.type.includes('cloison') ? 'cloison' : 'doublage'}"><div class="ouvrage-type">${o.type} - ${o.localisation}</div><div class="ouvrage-details"><div class="ouvrage-detail"><div class="value">${o.lineaire}m</div><div class="label">Linéaire</div></div><div class="ouvrage-detail"><div class="value">${o.hauteur || h}m</div><div class="label">Hauteur</div></div><div class="ouvrage-detail"><div class="value">E${o.entraxe || 60}</div><div class="label">${o.parement || 'BA13'}</div></div></div></div>`).join('') + (j.notes ? `<div class="info-box">${j.notes}</div>` : '');
+                    document.getElementById('aiResultsContainer').style.display = 'block';
+                    st.innerHTML = `<div class="ai-status success">✓ ${j.ouvrages.length} ouvrage(s) détecté(s)</div>`;
+                } else { st.innerHTML = '<div class="ai-status error">Aucun ouvrage détecté</div>'; }
+            } catch(e) { st.innerHTML = `<div class="ai-status error">❌ ${e.message}</div>`; }
+        }
+
+        function validerAnalyseIA() {
+            aiResults.forEach(o => ouvrages.push({ id: Date.now() + Math.random(), type: o.type, parement: o.parement || 'BA13', entraxe: o.entraxe || 60, localisation: o.localisation, lineaire: o.lineaire, hauteur: o.hauteur || 2.5 }));
+            renderOuvrages();
+            document.getElementById('aiResultsContainer').style.display = 'none';
+            document.getElementById('aiStatusContainer').innerHTML = '';
+            aiResults = [];
+        }
+
+        function ajouterOuvrage() {
+            const loc = document.getElementById('analyseLocalisation').value, lin = parseFloat(document.getElementById('analyseLineaire').value) || 0;
+            if(!loc || !lin) { alert('Remplissez localisation et linéaire'); return; }
+            ouvrages.push({ id: Date.now(), type: document.getElementById('analyseTypeOuvrage').value, parement: document.getElementById('analyseParement').value, entraxe: parseInt(document.getElementById('analyseEntraxe').value), localisation: loc, lineaire: lin, hauteur: parseFloat(document.getElementById('analyseHauteur').value) || 2.5 });
+            renderOuvrages();
+            document.getElementById('analyseLocalisation').value = '';
+            document.getElementById('analyseLineaire').value = '';
+        }
+
+        function renderOuvrages() {
+            const l = document.getElementById('ouvragesList'), e = document.getElementById('emptyOuvrages'), b = document.getElementById('btnCalculerPlan');
+            if(!ouvrages.length) { l.innerHTML = ''; e.style.display = 'block'; b.style.display = 'none'; document.getElementById('resultatAnalyse').style.display = 'none'; }
+            else {
+                e.style.display = 'none';
+                b.style.display = 'block';
+                l.innerHTML = ouvrages.map(o => `<div class="ouvrage-item ${o.type.includes('cloison') ? 'cloison' : o.type.includes('plafond') ? 'plafond' : 'doublage'}"><div class="ouvrage-header"><span class="ouvrage-type">${o.type} - ${o.localisation}</span><button class="ouvrage-delete" onclick="supprimerOuvrage(${o.id})">×</button></div><div class="ouvrage-details"><div class="ouvrage-detail"><div class="value">${o.lineaire}</div><div class="label">ml</div></div><div class="ouvrage-detail"><div class="value">${o.hauteur}</div><div class="label">m</div></div><div class="ouvrage-detail"><div class="value">E${o.entraxe}</div><div class="label">${o.parement}</div></div></div></div>`).join('');
+            }
+        }
+
+        function supprimerOuvrage(id) { ouvrages = ouvrages.filter(o => o.id !== id); renderOuvrages(); }
+
+        function calculerQuantitatifPlan() {
+            const mat = { plaques: {}, montants: {}, rails: {}, fourrures: 0, suspentes: 0, vis: 0, map: 0, bandes: 0, enduit: 0 };
+            const coef = 1.10;
+            ouvrages.forEach(o => {
+                const S = o.lineaire * o.hauteur, f = o.parement.startsWith('2x') ? 4 : 2;
+                if(o.type.startsWith('cloison-')) {
+                    const t = o.type.split('-')[1];
+                    mat.plaques[o.parement] = (mat.plaques[o.parement] || 0) + Math.ceil(S * f / 3 * coef);
+                    mat.rails['R' + t] = (mat.rails['R' + t] || 0) + Math.ceil(o.lineaire * 2 / 3 * coef);
+                    mat.montants['M' + t] = (mat.montants['M' + t] || 0) + Math.ceil((o.lineaire / (o.entraxe / 100) + 1) * (o.hauteur > 2.9 ? 2 : 1) * coef);
+                    mat.vis += Math.ceil(S * f * 12);
+                    mat.bandes += Math.ceil(S * 2.5);
+                    mat.enduit += S * f * 0.3;
+                } else if(o.type === 'doublage-colle') {
+                    mat.plaques['Complexe'] = (mat.plaques['Complexe'] || 0) + Math.ceil(S / 3 * coef);
+                    mat.map += Math.ceil(S * 3);
+                } else if(o.type.startsWith('plafond')) {
+                    mat.plaques[o.parement] = (mat.plaques[o.parement] || 0) + Math.ceil(S / 3 * coef);
+                    mat.fourrures += Math.ceil(S * 2.1 / 3 * coef);
+                    mat.suspentes += Math.ceil(S * 1.4);
+                    mat.vis += Math.ceil(S * 12);
+                }
+            });
+            let h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">';
+            Object.entries(mat.plaques).forEach(([t, q]) => { if(q > 0) h += `<div class="result-item"><div class="value">${Math.ceil(q)}</div><div class="label">${t}</div></div>`; });
+            Object.entries(mat.rails).forEach(([t, q]) => { if(q > 0) h += `<div class="result-item"><div class="value">${Math.ceil(q)}</div><div class="label">${t} (3m)</div></div>`; });
+            Object.entries(mat.montants).forEach(([t, q]) => { if(q > 0) h += `<div class="result-item"><div class="value">${Math.ceil(q)}</div><div class="label">${t} (3m)</div></div>`; });
+            if(mat.fourrures > 0) h += `<div class="result-item"><div class="value">${Math.ceil(mat.fourrures)}</div><div class="label">Fourrures (3m)</div></div>`;
+            if(mat.suspentes > 0) h += `<div class="result-item"><div class="value">${Math.ceil(mat.suspentes)}</div><div class="label">Suspentes</div></div>`;
+            if(mat.map > 0) h += `<div class="result-item"><div class="value">${Math.ceil(mat.map)}</div><div class="label">MAP (kg)</div></div>`;
+            h += `<div class="result-item"><div class="value">${Math.ceil(mat.vis)}</div><div class="label">Vis</div></div>`;
+            h += `<div class="result-item"><div class="value">${Math.ceil(mat.bandes)}</div><div class="label">Bandes (ml)</div></div>`;
+            h += `<div class="result-item"><div class="value">${Math.ceil(mat.enduit / 25)}</div><div class="label">Enduit (sacs)</div></div></div>`;
+            document.getElementById('resultatAnalyseContent').innerHTML = h;
+            document.getElementById('resultatAnalyse').style.display = 'block';
+            window.lastQuantitatif = mat;
+        }
+
+        async function exporterVersChantier() {
+            const chantiers = await dbGetAll('chantiers');
+            if(chantiers.length === 0) { alert('Créez d\'abord un chantier'); return; }
+            const nom = prompt('Choisir le chantier:\n' + chantiers.map((c, i) => `${i + 1}. ${c.nom}`).join('\n'));
+            const idx = parseInt(nom) - 1;
+            if(isNaN(idx) || !chantiers[idx]) { alert('Choix invalide'); return; }
+            const chantierId = chantiers[idx].id;
+            const mat = window.lastQuantitatif;
+            if(!mat) return;
+            for(const [t, q] of Object.entries(mat.plaques)) { if(q > 0) await dbAdd('quantitatif', { chantierId, designation: `Plaques ${t}`, qte: Math.ceil(q), unite: 'u' }); }
+            for(const [t, q] of Object.entries(mat.rails)) { if(q > 0) await dbAdd('quantitatif', { chantierId, designation: `${t} (barres 3m)`, qte: Math.ceil(q), unite: 'u' }); }
+            for(const [t, q] of Object.entries(mat.montants)) { if(q > 0) await dbAdd('quantitatif', { chantierId, designation: `${t} (barres 3m)`, qte: Math.ceil(q), unite: 'u' }); }
+            if(mat.fourrures > 0) await dbAdd('quantitatif', { chantierId, designation: 'Fourrures (3m)', qte: Math.ceil(mat.fourrures), unite: 'u' });
+            if(mat.suspentes > 0) await dbAdd('quantitatif', { chantierId, designation: 'Suspentes', qte: Math.ceil(mat.suspentes), unite: 'u' });
+            if(mat.map > 0) await dbAdd('quantitatif', { chantierId, designation: 'MAP', qte: Math.ceil(mat.map), unite: 'kg' });
+            await dbAdd('quantitatif', { chantierId, designation: 'Vis TTPC', qte: Math.ceil(mat.vis), unite: 'u' });
+            await dbAdd('quantitatif', { chantierId, designation: 'Bandes à joint', qte: Math.ceil(mat.bandes), unite: 'ml' });
+            await dbAdd('quantitatif', { chantierId, designation: 'Enduit (sacs 25kg)', qte: Math.ceil(mat.enduit / 25), unite: 'u' });
+            alert('Exporté vers ' + chantiers[idx].nom + ' !');
+        }
+
+        // =====================
+        // INIT
+        // =====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            checkAIAvailability();
+            console.log('PlaquistePro v5 - Complet avec gestion chantiers + IA');
+        });
+
+        if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    </script>
+</body>
+</html>
