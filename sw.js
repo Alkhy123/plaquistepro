@@ -1,10 +1,10 @@
-const CACHE_NAME = 'plaquistepro-v4';
+const CACHE_NAME = 'plaquistepro-v5';
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './icon192.png',
+  './icon512.png'
 ];
 
 // Installation
@@ -37,6 +37,12 @@ self.addEventListener('activate', event => {
 
 // Fetch - Cache first, then network
 self.addEventListener('fetch', event => {
+  // Ne pas mettre en cache les appels API
+  if (event.request.url.includes('api.anthropic.com')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {

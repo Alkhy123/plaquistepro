@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1E3A5F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>PlaquistePro - DTU & Gestion v5</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #1E3A5F; --primary-light: #2d5a8a; --secondary: #E8F4FC;
+            --accent: #FF6B35; --success: #28a745; --warning: #ffc107; --danger: #dc3545;
+            --text: #333; --text-light: #666; --bg: #f5f5f5; --white: #fff;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1); --radius: 12px;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 70px; }
+        .header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; padding: 12px 15px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+        .header-content { display: flex; align-items: center; gap: 10px; }
+        .header h1 { font-size: 1.1rem; font-weight: 600; }
+        .header-subtitle { font-size: 0.7rem; opacity: 0.8; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; font-size: 1rem; cursor: pointer; display: none; align-items: center; justify-content: center; }
+        .back-btn.visible { display: flex; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 6px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; padding: 6px 8px; color: var(--text-light); text-decoration: none; font-size: 0.6rem; border-radius: 8px; cursor: pointer; border: none; background: none; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item .icon { font-size: 1.2rem; margin-bottom: 2px; }
+        .page { display: none; padding: 12px; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--white); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; box-shadow: var(--shadow); }
+        .card-title { font-size: 0.9rem; font-weight: 600; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .menu-item { background: var(--white); border-radius: var(--radius); padding: 15px 10px; text-align: center; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; }
+        .menu-item:active { transform: scale(0.98); border-color: var(--primary); }
+        .menu-item .icon { font-size: 2rem; margin-bottom: 8px; }
+        .menu-item .label { font-weight: 600; color: var(--primary); font-size: 0.8rem; }
+        .menu-item .desc { font-size: 0.65rem; color: var(--text-light); margin-top: 3px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--primary); font-size: 0.8rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .btn-block { width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
+        .result-box { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; border-radius: var(--radius); padding: 15px; margin-top: 12px; }
+        .result-title { font-size: 0.8rem; opacity: 0.9; margin-bottom: 8px; }
+        .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .result-item { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; }
+        .result-item .value { font-size: 1.3rem; font-weight: 700; }
+        .result-item .label { font-size: 0.65rem; opacity: 0.9; }
+        .info-box { background: var(--secondary); border-left: 4px solid var(--primary); padding: 10px; border-radius: 0 8px 8px 0; margin: 8px 0; font-size: 0.8rem; }
+        .info-box.warning { background: #fff3cd; border-color: var(--warning); }
+        .info-box.success { background: #d4edda; border-color: var(--success); }
+        .info-box.danger { background: #f8d7da; border-color: var(--danger); }
+        .tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .tab { padding: 8px 12px; background: var(--white); border: 2px solid #ddd; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .spec-value { font-weight: 700; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th, td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: var(--primary); color: white; font-weight: 600; font-size: 0.7rem; }
+        th:first-child, td:first-child { text-align: left; }
+        tr:nth-child(even) { background: var(--secondary); }
+        .accordion-item { background: var(--white); border-radius: var(--radius); margin-bottom: 8px; box-shadow: var(--shadow); overflow: hidden; }
+        .accordion-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--primary); font-size: 0.85rem; }
+        .accordion-header::after { content: '▼'; font-size: 0.6rem; transition: transform 0.3s; }
+        .accordion-item.open .accordion-header::after { transform: rotate(180deg); }
+        .accordion-content { display: none; padding: 0 12px 12px; }
+        .accordion-item.open .accordion-content { display: block; }
+        .section-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin: 15px 0 10px; padding-bottom: 5px; border-bottom: 2px solid var(--primary); }
+        .rule-list { list-style: none; padding: 0; }
+        .rule-list li { padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.8rem; display: flex; align-items: flex-start; gap: 8px; }
+        .rule-list li::before { content: '✔'; color: var(--success); font-weight: bold; }
+        .submenu-list { display: flex; flex-direction: column; gap: 8px; }
+        .submenu-item { background: var(--white); border-radius: var(--radius); padding: 14px 15px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); cursor: pointer; }
+        .submenu-item:active { background: var(--secondary); }
+        .submenu-item .icon { font-size: 1.5rem; }
+        .submenu-item .content { flex: 1; }
+        .submenu-item .title { font-weight: 600; color: var(--primary); font-size: 0.9rem; }
+        .submenu-item .subtitle { font-size: 0.7rem; color: var(--text-light); }
+        .ai-status { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin: 10px 0; }
+        .ai-status.loading { background: #e3f2fd; color: #1565c0; }
+        .ai-status.success { background: #d4edda; color: #155724; }
+        .ai-status.error { background: #f8d7da; color: #721c24; }
+        .spinner { width: 16px; height: 16px; border: 2px solid #1565c0; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .plan-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; background: #f0f0f0; }
+        .ouvrage-item { background: var(--bg); border-radius: 8px; padding: 10px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+        .ouvrage-item.cloison { border-color: #E91E63; }
+        .ouvrage-item.doublage { border-color: #00BCD4; }
+        .ouvrage-item.plafond { border-color: #F44336; }
+        .ouvrage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .ouvrage-type { font-weight: 600; font-size: 0.85rem; }
+        .ouvrage-delete { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
+        .ouvrage-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 0.8rem; }
+        .ouvrage-detail { text-align: center; }
+        .ouvrage-detail .value { font-weight: 700; color: var(--primary); }
+        .ouvrage-detail .label { font-size: 0.65rem; color: var(--text-light); }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+        .tag { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 600; }
+        .tag-green { background: #d4edda; color: #155724; }
+        .tag-blue { background: #cce5ff; color: #004085; }
+        .tag-pink { background: #f8d7da; color: #721c24; }
+        .breadcrumb { font-size: 0.7rem; color: var(--text-light); margin-bottom: 10px; }
+        .breadcrumb span { color: var(--primary); font-weight: 600; }
+        .detail-calc { margin-top: 10px; font-size: 0.75rem; color: var(--text-light); background: var(--secondary); padding: 10px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <button class="back-btn" id="backBtn" onclick="goBack()">←</button>
+            <div>
+                <h1 id="pageTitle">🔨 PlaquistePro</h1>
+                <div class="header-subtitle" id="pageSubtitle">DTU 25.41 & 25.42 - v5</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PAGE ACCUEIL -->
+    <div class="page active" id="page-home">
+        <div class="menu-grid">
+            <div class="menu-item" onclick="showPage('normes')">
+                <div class="icon">📋</div>
+                <div class="label">Normes DTU</div>
+                <div class="desc">Règles de mise en œuvre</div>
+            </div>
+            <div class="menu-item" onclick="showPage('calculateur')">
+                <div class="icon">🧮</div>
+                <div class="label">Calculateur</div>
+                <div class="desc">Quantitatifs matériaux</div>
+            </div>
+            <div class="menu-item" onclick="showPage('analyse-plan')">
+                <div class="icon">🤖</div>
+                <div class="label">Analyse IA</div>
+                <div class="desc">Quantitatif depuis plan</div>
+            </div>
+            <div class="menu-item" onclick="showPage('hauteurs')">
+                <div class="icon">📏</div>
+                <div class="label">Hauteurs max</div>
+                <div class="desc">Tableaux DTU</div>
+            </div>
+            <div class="menu-item" onclick="showPage('locaux')">
+                <div class="icon">💧</div>
+                <div class="label">Locaux humides</div>
+                <div class="desc">EA, EB, EB+, EC</div>
+            </div>
+            <div class="menu-item" onclick="showPage('aide')">
+                <div class="icon">❓</div>
+                <div class="label">Aide</div>
+                <div class="desc">Rails vs Montants</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE AIDE -->
+    <div class="page" id="page-aide">
+        <div class="card">
+            <div class="card-title">📚 Rails vs Montants</div>
+            <div class="info-box">
+                <strong>RAILS (R48, R62, R70, R90, R100)</strong><br>
+                • Se posent au <strong>sol et au plafond</strong><br>
+                • Longueur standard : <strong>3 mètres</strong><br>
+                • Fixation tous les <strong>60 cm max</strong><br>
+                • Quantité = longueur cloison × 2
+            </div>
+            <div class="info-box" style="margin-top: 10px;">
+                <strong>MONTANTS (M48, M62, M70, M90, M100)</strong><br>
+                • Se posent <strong>verticalement</strong> dans les rails<br>
+                • Longueur standard : <strong>3 mètres</strong><br>
+                • Entraxe selon DTU (40, 60 ou 90 cm)<br>
+                • Quantité = (longueur / entraxe) + 1
+            </div>
+            <div class="info-box warning" style="margin-top: 10px;">
+                <strong>⚠️ Si hauteur > 3m</strong><br>
+                Les montants doivent être éclissés (2 barres par montant).<br>
+                L'éclisse = portion de rail de 40 cm minimum.
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">🔢 Exemple de calcul</div>
+            <p style="font-size: 0.85rem;">
+                <strong>Cloison de 5m de long × 2.50m de haut, entraxe 60cm :</strong>
+            </p>
+            <ul style="font-size: 0.8rem; margin-left: 20px; margin-top: 10px;">
+                <li><strong>Rails :</strong> 5m × 2 = 10 ml → 4 barres de 3m</li>
+                <li><strong>Montants :</strong> (5m / 0.60m) + 1 = 9.3 → 10 montants → 10 barres de 3m</li>
+                <li><strong>Plaques :</strong> (5 × 2.50) × 2 faces = 25 m² → 9 plaques</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- PAGE ANALYSE IA -->
+    <div class="page" id="page-analyse-plan">
+        <div class="card">
+            <div class="card-title">🤖 Analyse IA de plan</div>
+            <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px;">
+                Uploadez un plan coté et l'IA analysera les dimensions pour calculer le quantitatif.
+            </p>
+            <input type="file" id="planInputAI" accept="image/*" onchange="handlePlanUploadAI(event)" style="display: none;">
+            <div id="planPreviewContainerAI" style="display: none;">
+                <img id="planPreviewAI" class="plan-preview" alt="Plan">
+                <button class="btn btn-outline btn-sm btn-block" onclick="removePlanAI()">🗑️ Supprimer</button>
+            </div>
+            <button id="addPlanBtnAI" class="btn btn-primary btn-block" onclick="document.getElementById('planInputAI').click()">📷 Charger un plan</button>
+        </div>
+
+        <div id="aiAnalysisSection" style="display: none;">
+            <div class="card">
+                <div class="card-title">⚙️ Paramètres</div>
+                <div class="form-group">
+                    <label>Hauteur sous plafond (m)</label>
+                    <input type="number" id="aiHauteurDefaut" value="2.50" step="0.01">
+                </div>
+                <button class="btn btn-accent btn-block" onclick="lancerAnalyseIA()">🔍 Analyser avec l'IA</button>
+            </div>
+            <div id="aiStatusContainer"></div>
+            <div id="aiResultsContainer" style="display: none;">
+                <div class="card">
+                    <div class="card-title">📊 Résultats IA</div>
+                    <div id="aiResultsList"></div>
+                </div>
+                <button class="btn btn-success btn-block" onclick="validerAnalyseIA()">✓ Valider et ajouter</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">✏️ Saisie manuelle</div>
+            <div class="form-group">
+                <label>Type d'ouvrage</label>
+                <select id="analyseTypeOuvrage">
+                    <option value="cloison-48">Cloison 72/48 (M48)</option>
+                    <option value="cloison-62">Cloison 98/62 (M62)</option>
+                    <option value="cloison-70">Cloison 100/70 (M70)</option>
+                    <option value="cloison-90">Cloison 120/90 (M90)</option>
+                    <option value="doublage-colle">Doublage collé</option>
+                    <option value="plafond-suspendu">Plafond suspendu</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Parement</label>
+                    <select id="analyseParement">
+                        <option value="BA13">BA13</option>
+                        <option value="BA13-H1">BA13 H1</option>
+                        <option value="2xBA13">2×BA13</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Entraxe</label>
+                    <select id="analyseEntraxe">
+                        <option value="60">60 cm</option>
+                        <option value="40">40 cm</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Localisation</label>
+                <input type="text" id="analyseLocalisation" placeholder="ex: Cloison WC">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Linéaire (ml)</label>
+                    <input type="number" id="analyseLineaire" step="0.01" placeholder="5.50">
+                </div>
+                <div class="form-group">
+                    <label>Hauteur (m)</label>
+                    <input type="number" id="analyseHauteur" value="2.50" step="0.01">
+                </div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="ajouterOuvrage()">➕ Ajouter</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📦 Ouvrages</div>
+            <div id="ouvragesList"></div>
+            <div class="empty-state" id="emptyOuvrages">
+                <div class="icon">📝</div>
+                <div class="text">Aucun ouvrage</div>
+            </div>
+        </div>
+
+        <button class="btn btn-success btn-block" onclick="calculerQuantitatifPlan()" id="btnCalculerPlan" style="display: none;">🧮 Calculer le quantitatif</button>
+
+        <div id="resultatAnalyse" style="display: none;">
+            <div class="result-box">
+                <div class="result-title">📦 Récapitulatif matériaux</div>
+                <div id="resultatAnalyseContent"></div>
+            </div>
+            <div class="info-box" style="margin-top: 10px;">
+                <strong>Rappel :</strong> Rails = sol + plafond | Montants = verticaux selon entraxe
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE CALCULATEUR -->
+    <div class="page" id="page-calculateur">
+        <div class="tabs">
+            <div class="tab active" onclick="showCalcTab('cloison')">Cloison</div>
+            <div class="tab" onclick="showCalcTab('plafond')">Plafond</div>
+            <div class="tab" onclick="showCalcTab('doublage')">Doublage</div>
+        </div>
+
+        <div id="calc-cloison">
+            <div class="card">
+                <div class="card-title">📐 Dimensions cloison</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Longueur (m)</label>
+                        <input type="number" id="cloisonLongueur" placeholder="5" step="0.1" oninput="calculerCloisonAuto()">
+                    </div>
+                    <div class="form-group">
+                        <label>Hauteur (m)</label>
+                        <input type="number" id="cloisonHauteur" placeholder="2.5" step="0.1" oninput="calculerCloisonAuto()">
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">⚙️ Configuration</div>
+                <div class="form-group">
+                    <label>Type de montant</label>
+                    <select id="cloisonMontant" onchange="calculerCloisonAuto()">
+                        <option value="48">M48 / R48</option>
+                        <option value="62">M62 / R62</option>
+                        <option value="70">M70 / R70</option>
+                        <option value="90">M90 / R90</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Parement</label>
+                        <select id="cloisonParement" onchange="calculerCloisonAuto()">
+                            <option value="simple">Simple (1 plaque/face)</option>
+                            <option value="double">Double (2 plaques/face)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Entraxe</label>
+                        <select id="cloisonEntraxe" onchange="calculerCloisonAuto()">
+                            <option value="60">60 cm</option>
+                            <option value="40">40 cm</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="info-box">
+                <strong>Formules :</strong><br>
+                • Rails : longueur × 2 (sol + plafond)<br>
+                • Montants : (longueur / entraxe) + 1
+            </div>
+            <div id="resultatCloison" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">📦 Matériaux</div>
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resPlaquesNb">-</div><div class="label">Plaques</div></div>
+                        <div class="result-item"><div class="value" id="resMontants">-</div><div class="label">Montants (3m)</div></div>
+                        <div class="result-item"><div class="value" id="resRails">-</div><div class="label">Rails (3m)</div></div>
+                        <div class="result-item"><div class="value" id="resVis">-</div><div class="label">Vis</div></div>
+                    </div>
+                </div>
+                <div class="detail-calc" id="detailCalculCloison"></div>
+            </div>
+        </div>
+
+        <div id="calc-plafond" style="display: none;">
+            <div class="card">
+                <div class="card-title">📐 Dimensions pièce</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Longueur (m)</label>
+                        <input type="number" id="plafondLongueur" placeholder="4" step="0.1" oninput="calculerPlafondAuto()">
+                    </div>
+                    <div class="form-group">
+                        <label>Largeur (m)</label>
+                        <input type="number" id="plafondLargeur" placeholder="3" step="0.1" oninput="calculerPlafondAuto()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Entraxe fourrures</label>
+                    <select id="plafondEntraxe" onchange="calculerPlafondAuto()">
+                        <option value="60">60 cm</option>
+                        <option value="50">50 cm</option>
+                    </select>
+                </div>
+            </div>
+            <div id="resultatPlafond" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">📦 Matériaux</div>
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resPlafPlaques">-</div><div class="label">Plaques</div></div>
+                        <div class="result-item"><div class="value" id="resPlafFourrures">-</div><div class="label">Fourrures (3m)</div></div>
+                        <div class="result-item"><div class="value" id="resPlafSuspentes">-</div><div class="label">Suspentes</div></div>
+                        <div class="result-item"><div class="value" id="resPlafCornieres">-</div><div class="label">Cornières (3m)</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="calc-doublage" style="display: none;">
+            <div class="card">
+                <div class="card-title">📐 Surface mur</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Longueur (m)</label>
+                        <input type="number" id="doublageLongueur" placeholder="4" step="0.1" oninput="calculerDoublageAuto()">
+                    </div>
+                    <div class="form-group">
+                        <label>Hauteur (m)</label>
+                        <input type="number" id="doublageHauteur" placeholder="2.5" step="0.1" oninput="calculerDoublageAuto()">
+                    </div>
+                </div>
+            </div>
+            <div id="resultatDoublage" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">📦 Matériaux</div>
+                    <div class="result-grid">
+                        <div class="result-item"><div class="value" id="resDoubPlaques">-</div><div class="label">Complexes</div></div>
+                        <div class="result-item"><div class="value" id="resDoubMAP">-</div><div class="label">MAP (kg)</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES -->
+    <div class="page" id="page-normes">
+        <div class="submenu-list">
+            <div class="submenu-item" onclick="showPage('normes-cloisons')">
+                <div class="icon">🧱</div>
+                <div class="content">
+                    <div class="title">Cloisons</div>
+                    <div class="subtitle">Entraxes, hauteurs max</div>
+                </div>
+            </div>
+            <div class="submenu-item" onclick="showPage('normes-plafonds')">
+                <div class="icon">📲</div>
+                <div class="content">
+                    <div class="title">Plafonds</div>
+                    <div class="subtitle">Suspendus, autoportants</div>
+                </div>
+            </div>
+            <div class="submenu-item" onclick="showPage('normes-visserie')">
+                <div class="icon">🔩</div>
+                <div class="content">
+                    <div class="title">Visserie</div>
+                    <div class="subtitle">Longueurs, entraxes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES CLOISONS -->
+    <div class="page" id="page-normes-cloisons">
+        <div class="breadcrumb">Normes › <span>Cloisons</span></div>
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">📐 Entraxe des montants</div>
+            <div class="accordion-content">
+                <table>
+                    <tr><th>Configuration</th><th>Entraxe</th></tr>
+                    <tr><td>Standard (plaques 120 cm)</td><td class="spec-value">60 cm</td></tr>
+                    <tr><td>Carrelage > 1600 cm²</td><td class="spec-value">40 cm</td></tr>
+                    <tr><td>Hygrométrie > 80%</td><td class="spec-value">40 cm max</td></tr>
+                </table>
+                <div class="info-box" style="margin-top: 10px;">
+                    <strong>Fixation rails :</strong> tous les 60 cm max, à ≥ 5 cm du bord dalle.
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">📏 Hauteurs max (BA13, E60)</div>
+            <div class="accordion-content">
+                <div class="section-title">Simple parement</div>
+                <table>
+                    <tr><th>Montant</th><th>H max</th></tr>
+                    <tr><td>M48-35</td><td>2,50 m</td></tr>
+                    <tr><td>M62-40</td><td>2,85 m</td></tr>
+                    <tr><td>M70-35</td><td>3,25 m</td></tr>
+                    <tr><td>M90-35</td><td>3,90 m</td></tr>
+                </table>
+                <div class="section-title">Double parement (2×BA13)</div>
+                <table>
+                    <tr><th>Montant</th><th>H max</th></tr>
+                    <tr><td>M48-35</td><td>3,00 m</td></tr>
+                    <tr><td>M62-40</td><td>3,40 m</td></tr>
+                    <tr><td>M70-35</td><td>3,85 m</td></tr>
+                    <tr><td>M90-35</td><td>4,60 m</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES PLAFONDS -->
+    <div class="page" id="page-normes-plafonds">
+        <div class="breadcrumb">Normes › <span>Plafonds</span></div>
+        <div class="accordion-item open">
+            <div class="accordion-header" onclick="toggleAccordion(this)">🔗 Plafonds sur fourrures</div>
+            <div class="accordion-content">
+                <table>
+                    <tr><th>Pose plaques</th><th>Entraxe</th></tr>
+                    <tr><td>Perpendiculaire</td><td class="spec-value">50 ou 60 cm</td></tr>
+                    <tr><td>Parallèle</td><td class="spec-value">40 cm max</td></tr>
+                </table>
+                <div class="section-title">Distance max suspentes</div>
+                <table>
+                    <tr><th>Entraxe</th><th>1×BA13</th><th>2×BA13</th></tr>
+                    <tr><td>50 cm</td><td>1,20 m</td><td>1,15 m</td></tr>
+                    <tr><td>60 cm</td><td>1,20 m</td><td>1,00 m</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE NORMES VISSERIE -->
+    <div class="page" id="page-normes-visserie">
+        <div class="breadcrumb">Normes › <span>Visserie</span></div>
+        <div class="card">
+            <div class="card-title">🔩 Longueur des vis</div>
+            <table>
+                <tr><th>Configuration</th><th>Vis</th></tr>
+                <tr><td>1 × BA13</td><td class="spec-value">25 mm</td></tr>
+                <tr><td>1 × BA18</td><td class="spec-value">35 mm</td></tr>
+                <tr><td>2 × BA13</td><td class="spec-value">25 + 45 mm</td></tr>
+            </table>
+        </div>
+        <div class="card">
+            <div class="card-title">📏 Règles de vissage</div>
+            <ul class="rule-list">
+                <li>Entraxe vis : <span class="spec-value">30 cm</span></li>
+                <li>Distance bord plaque : <span class="spec-value">≥ 1 cm</span></li>
+                <li>Pénétration acier : <span class="spec-value">≥ 10 mm</span></li>
+                <li>Vissage en quinconce : <span class="spec-value">INTERDIT</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- PAGE HAUTEURS -->
+    <div class="page" id="page-hauteurs">
+        <div class="card">
+            <div class="card-title">📏 Hauteurs max cloisons</div>
+            <div class="tabs">
+                <div class="tab active" onclick="showHauteursTab('simple')">Simple</div>
+                <div class="tab" onclick="showHauteursTab('double')">Double</div>
+            </div>
+            <div id="hauteurs-simple">
+                <p style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 8px;">Simple parement BA13, entraxe 60cm</p>
+                <table>
+                    <tr><th>Montant</th><th>E60</th><th>E40</th></tr>
+                    <tr><td>M48</td><td>2,50 m</td><td>2,80 m</td></tr>
+                    <tr><td>M62</td><td>2,85 m</td><td>3,20 m</td></tr>
+                    <tr><td>M70</td><td>3,25 m</td><td>3,70 m</td></tr>
+                    <tr><td>M90</td><td>3,90 m</td><td>4,50 m</td></tr>
+                </table>
+            </div>
+            <div id="hauteurs-double" style="display: none;">
+                <p style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 8px;">Double parement 2×BA13</p>
+                <table>
+                    <tr><th>Montant</th><th>E60</th><th>E40</th></tr>
+                    <tr><td>M48</td><td>3,00 m</td><td>3,40 m</td></tr>
+                    <tr><td>M62</td><td>3,40 m</td><td>3,90 m</td></tr>
+                    <tr><td>M70</td><td>3,85 m</td><td>4,40 m</td></tr>
+                    <tr><td>M90</td><td>4,60 m</td><td>5,30 m</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE LOCAUX HUMIDES -->
+    <div class="page" id="page-locaux">
+        <div class="card">
+            <strong style="color: var(--primary);">🏠 EA - Locaux secs</strong>
+            <p style="font-size: 0.8rem; margin: 5px 0;">Chambre, séjour, couloir</p>
+            <span class="tag tag-blue">Plaques standards</span>
+        </div>
+        <div class="card">
+            <strong style="color: var(--primary);">🍳 EB - Moyennement humides</strong>
+            <p style="font-size: 0.8rem; margin: 5px 0;">Cuisine, WC</p>
+            <span class="tag tag-green">H1 conseillé</span>
+        </div>
+        <div class="card" style="border: 2px solid var(--warning);">
+            <strong style="color: var(--primary);">🚿 EB+ privatif</strong>
+            <p style="font-size: 0.8rem; margin: 5px 0;">Salle de bains privée</p>
+            <span class="tag tag-green">H1 OBLIGATOIRE</span>
+            <div class="info-box warning" style="margin-top: 8px; font-size: 0.75rem;">Entraxe 40 cm si carrelage > 1600 cm²</div>
+        </div>
+        <div class="card" style="border: 2px solid var(--danger);">
+            <strong style="color: var(--primary);">🏢 EB+ collectif</strong>
+            <p style="font-size: 0.8rem; margin: 5px 0;">Douches collectives, sanitaires ERP</p>
+            <span class="tag tag-green">H1 OBLIGATOIRE</span>
+            <span class="tag tag-pink">BA18 ou 2×BA13</span>
+        </div>
+    </div>
+
+    <nav class="nav-bottom">
+        <button class="nav-item active" onclick="showPage('home')" id="nav-home"><span class="icon">🏠</span><span>Accueil</span></button>
+        <button class="nav-item" onclick="showPage('calculateur')" id="nav-calculateur"><span class="icon">🧮</span><span>Calcul</span></button>
+        <button class="nav-item" onclick="showPage('normes')" id="nav-normes"><span class="icon">📋</span><span>Normes</span></button>
+        <button class="nav-item" onclick="showPage('analyse-plan')" id="nav-analyse-plan"><span class="icon">🤖</span><span>IA</span></button>
+    </nav>
+
+    <script>
+        // =====================
+        // NAVIGATION
+        // =====================
+        let currentPage = 'home';
+        let pageHistory = [];
+
+        const pageTitles = {
+            'home': { title: '🔨 PlaquistePro', subtitle: 'DTU 25.41 & 25.42 - v5' },
+            'calculateur': { title: '🧮 Calculateur', subtitle: 'Quantitatifs corrigés' },
+            'normes': { title: '📋 Normes DTU', subtitle: 'Choisir un ouvrage' },
+            'normes-cloisons': { title: '🧱 Cloisons', subtitle: 'DTU 25.41' },
+            'normes-plafonds': { title: '📲 Plafonds', subtitle: 'DTU 25.41' },
+            'normes-visserie': { title: '🔩 Visserie', subtitle: 'DTU 25.41' },
+            'analyse-plan': { title: '🤖 Analyse IA', subtitle: 'Quantitatif depuis plan' },
+            'hauteurs': { title: '📏 Hauteurs max', subtitle: 'Tableaux DTU' },
+            'locaux': { title: '💧 Locaux humides', subtitle: 'Classification' },
+            'aide': { title: '❓ Aide', subtitle: 'Rails vs Montants' }
+        };
+
+        function showPage(pageId) {
+            if (currentPage !== pageId) pageHistory.push(currentPage);
+            currentPage = pageId;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navItem = document.getElementById('nav-' + pageId);
+            if (navItem) navItem.classList.add('active');
+            if (pageId.startsWith('normes')) document.getElementById('nav-normes').classList.add('active');
+            updateHeader(pageId);
+        }
+
+        function updateHeader(pageId) {
+            const info = pageTitles[pageId] || pageTitles['home'];
+            document.getElementById('pageTitle').textContent = info.title;
+            document.getElementById('pageSubtitle').textContent = info.subtitle;
+            document.getElementById('backBtn').classList.toggle('visible', pageId !== 'home');
+        }
+
+        function goBack() {
+            if (pageHistory.length > 0) {
+                const prevPage = pageHistory.pop();
+                showPage(prevPage);
+                pageHistory.pop();
+            } else {
+                showPage('home');
+            }
+        }
+
+        function toggleAccordion(header) {
+            header.parentElement.classList.toggle('open');
+        }
+
+        // =====================
+        // CALCULATEUR CLOISON (CORRIGÉ)
+        // =====================
+        function showCalcTab(tab) {
+            document.querySelectorAll('#page-calculateur > div[id^="calc-"]').forEach(c => c.style.display = 'none');
+            document.getElementById('calc-' + tab).style.display = 'block';
+            document.querySelectorAll('#page-calculateur .tabs .tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function calculerCloisonAuto() {
+            const longueur = parseFloat(document.getElementById('cloisonLongueur').value) || 0;
+            const hauteur = parseFloat(document.getElementById('cloisonHauteur').value) || 0;
+            
+            if (longueur > 0 && hauteur > 0) {
+                const parement = document.getElementById('cloisonParement').value;
+                const entraxe = parseInt(document.getElementById('cloisonEntraxe').value);
+                const LONGUEUR_BARRE = 3;
+                const coef = 1.10;
+                
+                const surface = longueur * hauteur;
+                const faces = parement === 'double' ? 4 : 2;
+                
+                // PLAQUES
+                const nbPlaques = Math.ceil((surface * faces / 3) * coef);
+                
+                // RAILS : sol + plafond = longueur × 2, puis convertir en barres de 3m
+                const mlRails = longueur * 2;
+                const nbRails = Math.ceil((mlRails / LONGUEUR_BARRE) * coef);
+                
+                // MONTANTS : verticaux selon entraxe = (longueur / entraxe) + 1
+                const entraxeM = entraxe / 100;
+                const nbMontantsTheorique = Math.ceil(longueur / entraxeM) + 1;
+                const barresParMontant = hauteur > 2.9 ? 2 : 1;
+                const nbMontants = Math.ceil(nbMontantsTheorique * barresParMontant * coef);
+                
+                // VIS
+                const vis = Math.ceil(surface * faces * 12);
+
+                document.getElementById('resPlaquesNb').textContent = nbPlaques;
+                document.getElementById('resMontants').textContent = nbMontants;
+                document.getElementById('resRails').textContent = nbRails;
+                document.getElementById('resVis').textContent = vis;
+
+                document.getElementById('detailCalculCloison').innerHTML = `
+                    <strong>Détail du calcul :</strong><br>
+                    • <strong>Rails :</strong> ${longueur.toFixed(2)}m × 2 (sol+plafond) = ${mlRails.toFixed(2)} ml → <strong>${nbRails} barres de 3m</strong><br>
+                    • <strong>Montants :</strong> (${longueur.toFixed(2)}m ÷ ${entraxe/100}m) + 1 = ${nbMontantsTheorique} montants${barresParMontant > 1 ? ' × 2 (éclissage H>3m)' : ''} → <strong>${nbMontants} barres de 3m</strong><br>
+                    • <strong>Plaques :</strong> ${surface.toFixed(2)}m² × ${faces} faces ÷ 3m² = <strong>${nbPlaques} plaques</strong>
+                `;
+
+                document.getElementById('resultatCloison').style.display = 'block';
+            } else {
+                document.getElementById('resultatCloison').style.display = 'none';
+            }
+        }
+
+        function calculerPlafondAuto() {
+            const longueur = parseFloat(document.getElementById('plafondLongueur').value) || 0;
+            const largeur = parseFloat(document.getElementById('plafondLargeur').value) || 0;
+            
+            if (longueur > 0 && largeur > 0) {
+                const surface = longueur * largeur;
+                const entraxe = parseInt(document.getElementById('plafondEntraxe').value);
+                const coef = 1.10;
+                const LONGUEUR_BARRE = 3;
+                
+                const nbPlaques = Math.ceil(surface / 3 * coef);
+                const entraxeM = entraxe / 100;
+                const nbFourruresLignes = Math.ceil(largeur / entraxeM) + 1;
+                const mlFourrures = nbFourruresLignes * longueur;
+                const nbFourrures = Math.ceil(mlFourrures / LONGUEUR_BARRE * coef);
+                const suspentes = Math.ceil(surface * 1.4);
+                const perimetre = (longueur + largeur) * 2;
+                const nbCornieres = Math.ceil(perimetre / LONGUEUR_BARRE * coef);
+
+                document.getElementById('resPlafPlaques').textContent = nbPlaques;
+                document.getElementById('resPlafFourrures').textContent = nbFourrures;
+                document.getElementById('resPlafSuspentes').textContent = suspentes;
+                document.getElementById('resPlafCornieres').textContent = nbCornieres;
+                document.getElementById('resultatPlafond').style.display = 'block';
+            } else {
+                document.getElementById('resultatPlafond').style.display = 'none';
+            }
+        }
+
+        function calculerDoublageAuto() {
+            const longueur = parseFloat(document.getElementById('doublageLongueur').value) || 0;
+            const hauteur = parseFloat(document.getElementById('doublageHauteur').value) || 0;
+            
+            if (longueur > 0 && hauteur > 0) {
+                const surface = longueur * hauteur;
+                const coef = 1.10;
+                const nbPlaques = Math.ceil(surface * coef / 3);
+                const map = Math.ceil(surface * 3);
+
+                document.getElementById('resDoubPlaques').textContent = nbPlaques;
+                document.getElementById('resDoubMAP').textContent = map;
+                document.getElementById('resultatDoublage').style.display = 'block';
+            } else {
+                document.getElementById('resultatDoublage').style.display = 'none';
+            }
+        }
+
+        // =====================
+        // HAUTEURS TABS
+        // =====================
+        function showHauteursTab(tab) {
+            document.getElementById('hauteurs-simple').style.display = tab === 'simple' ? 'block' : 'none';
+            document.getElementById('hauteurs-double').style.display = tab === 'double' ? 'block' : 'none';
+            document.querySelectorAll('#page-hauteurs .tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // =====================
+        // ANALYSE IA
+        // =====================
+        let planImageAI = null;
+        let aiAnalysisResults = [];
+        let ouvrages = [];
+
+        function handlePlanUploadAI(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    planImageAI = e.target.result;
+                    document.getElementById('planPreviewAI').src = planImageAI;
+                    document.getElementById('planPreviewContainerAI').style.display = 'block';
+                    document.getElementById('addPlanBtnAI').style.display = 'none';
+                    document.getElementById('aiAnalysisSection').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removePlanAI() {
+            planImageAI = null;
+            document.getElementById('planPreviewContainerAI').style.display = 'none';
+            document.getElementById('addPlanBtnAI').style.display = 'block';
+            document.getElementById('aiAnalysisSection').style.display = 'none';
+            document.getElementById('aiResultsContainer').style.display = 'none';
+            document.getElementById('planInputAI').value = '';
+        }
+
+        async function lancerAnalyseIA() {
+            if (!planImageAI) { alert('Chargez d\'abord un plan'); return; }
+
+            const statusContainer = document.getElementById('aiStatusContainer');
+            statusContainer.innerHTML = '<div class="ai-status loading"><div class="spinner"></div><span>Analyse en cours...</span></div>';
+
+            const hauteurDefaut = document.getElementById('aiHauteurDefaut').value;
+
+            try {
+                const base64Data = planImageAI.split(',')[1];
+                const mediaType = planImageAI.split(';')[0].split(':')[1];
+
+                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-20250514",
+                        max_tokens: 4000,
+                        messages: [{
+                            role: "user",
+                            content: [
+                                { type: "image", source: { type: "base64", media_type: mediaType, data: base64Data } },
+                                { type: "text", text: `Tu es un expert plaquiste. Analyse ce plan et identifie les cloisons/ouvrages.
+Pour chaque ouvrage, extrais: type (cloison-48, cloison-62, etc.), localisation, linéaire en mètres.
+Hauteur par défaut: ${hauteurDefaut}m
+
+Réponds UNIQUEMENT avec ce JSON:
+{"ouvrages":[{"type":"cloison-48","localisation":"description","lineaire":5.5,"hauteur":2.5,"parement":"BA13","entraxe":60}],"notes":"observations"}` }
+                            ]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+
+                const textContent = data.content.find(c => c.type === 'text');
+                const jsonStr = textContent.text.replace(/```json\n?|```\n?/g, '').trim();
+                const result = JSON.parse(jsonStr);
+
+                if (result.ouvrages?.length > 0) {
+                    aiAnalysisResults = result.ouvrages;
+                    document.getElementById('aiResultsList').innerHTML = result.ouvrages.map(o => 
+                        `<div class="ouvrage-item"><div class="ouvrage-type">${o.type} - ${o.localisation}</div><div class="ouvrage-details"><div class="ouvrage-detail"><div class="value">${o.lineaire}m</div><div class="label">Linéaire</div></div></div></div>`
+                    ).join('');
+                    document.getElementById('aiResultsContainer').style.display = 'block';
+                    statusContainer.innerHTML = '<div class="ai-status success">✓ ' + result.ouvrages.length + ' ouvrage(s) détecté(s)</div>';
+                } else {
+                    statusContainer.innerHTML = '<div class="ai-status error">Aucun ouvrage détecté</div>';
+                }
+            } catch (error) {
+                statusContainer.innerHTML = '<div class="ai-status error">❌ Erreur: ' + error.message + '</div>';
+            }
+        }
+
+        function validerAnalyseIA() {
+            aiAnalysisResults.forEach(o => {
+                ouvrages.push({
+                    id: Date.now() + Math.random(),
+                    type: o.type,
+                    parement: o.parement || 'BA13',
+                    entraxe: o.entraxe || 60,
+                    localisation: o.localisation,
+                    lineaire: o.lineaire,
+                    hauteur: o.hauteur || 2.5
+                });
+            });
+            renderOuvrages();
+            document.getElementById('aiResultsContainer').style.display = 'none';
+            aiAnalysisResults = [];
+        }
+
+        // =====================
+        // OUVRAGES MANUELS
+        // =====================
+        function ajouterOuvrage() {
+            const type = document.getElementById('analyseTypeOuvrage').value;
+            const parement = document.getElementById('analyseParement').value;
+            const entraxe = parseInt(document.getElementById('analyseEntraxe').value);
+            const localisation = document.getElementById('analyseLocalisation').value;
+            const lineaire = parseFloat(document.getElementById('analyseLineaire').value) || 0;
+            const hauteur = parseFloat(document.getElementById('analyseHauteur').value) || 2.5;
+
+            if (!localisation || lineaire === 0) { alert('Remplissez tous les champs'); return; }
+
+            ouvrages.push({ id: Date.now(), type, parement, entraxe, localisation, lineaire, hauteur });
+            renderOuvrages();
+            document.getElementById('analyseLocalisation').value = '';
+            document.getElementById('analyseLineaire').value = '';
+        }
+
+        function renderOuvrages() {
+            const list = document.getElementById('ouvragesList');
+            const empty = document.getElementById('emptyOuvrages');
+            const btn = document.getElementById('btnCalculerPlan');
+
+            if (ouvrages.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                btn.style.display = 'none';
+            } else {
+                empty.style.display = 'none';
+                btn.style.display = 'block';
+                list.innerHTML = ouvrages.map(o => `
+                    <div class="ouvrage-item ${o.type.includes('cloison') ? 'cloison' : o.type.includes('plafond') ? 'plafond' : 'doublage'}">
+                        <div class="ouvrage-header">
+                            <span class="ouvrage-type">${o.type} - ${o.localisation}</span>
+                            <button class="ouvrage-delete" onclick="supprimerOuvrage(${o.id})">×</button>
+                        </div>
+                        <div class="ouvrage-details">
+                            <div class="ouvrage-detail"><div class="value">${o.lineaire.toFixed(2)}</div><div class="label">ml</div></div>
+                            <div class="ouvrage-detail"><div class="value">${o.hauteur}</div><div class="label">m haut</div></div>
+                            <div class="ouvrage-detail"><div class="value">E${o.entraxe}</div><div class="label">${o.parement}</div></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function supprimerOuvrage(id) {
+            ouvrages = ouvrages.filter(o => o.id !== id);
+            renderOuvrages();
+        }
+
+        // =====================
+        // CALCUL QUANTITATIF GLOBAL (CORRIGÉ)
+        // =====================
+        function calculerQuantitatifPlan() {
+            const materiaux = {
+                plaques: {}, montants: {}, rails: {},
+                fourrures: 0, suspentes: 0, vis: 0, map: 0, bandes: 0, enduit: 0
+            };
+            const LONGUEUR_BARRE = 3;
+            const coef = 1.10;
+
+            ouvrages.forEach(o => {
+                const lin = o.lineaire;
+                const hauteur = o.hauteur;
+                const surface = lin * hauteur;
+
+                if (o.type.startsWith('cloison-')) {
+                    const montantType = 'M' + o.type.split('-')[1];
+                    const railType = 'R' + o.type.split('-')[1];
+                    const faces = o.parement.startsWith('2x') ? 4 : 2;
+
+                    // Plaques
+                    const nbPlaques = Math.ceil((surface * faces / 3) * coef);
+                    materiaux.plaques[o.parement] = (materiaux.plaques[o.parement] || 0) + nbPlaques;
+
+                    // Rails (sol + plafond)
+                    const mlRails = lin * 2;
+                    const nbRails = Math.ceil((mlRails / LONGUEUR_BARRE) * coef);
+                    materiaux.rails[railType] = (materiaux.rails[railType] || 0) + nbRails;
+
+                    // Montants (verticaux)
+                    const entraxeM = o.entraxe / 100;
+                    const nbMontantsTheo = Math.ceil(lin / entraxeM) + 1;
+                    const barresParMontant = hauteur > 2.9 ? 2 : 1;
+                    const nbMontants = Math.ceil(nbMontantsTheo * barresParMontant * coef);
+                    materiaux.montants[montantType] = (materiaux.montants[montantType] || 0) + nbMontants;
+
+                    materiaux.vis += Math.ceil(surface * faces * 12);
+                    materiaux.bandes += Math.ceil(surface * 2.5);
+                    materiaux.enduit += surface * faces * 0.3;
+
+                } else if (o.type === 'doublage-colle') {
+                    materiaux.plaques['Complexe'] = (materiaux.plaques['Complexe'] || 0) + Math.ceil(surface / 3 * coef);
+                    materiaux.map += Math.ceil(surface * 3);
+                    materiaux.bandes += Math.ceil(surface * 1.5);
+
+                } else if (o.type.startsWith('plafond')) {
+                    materiaux.plaques[o.parement] = (materiaux.plaques[o.parement] || 0) + Math.ceil(surface / 3 * coef);
+                    const mlFourrures = surface * 2.1;
+                    materiaux.fourrures += Math.ceil(mlFourrures / LONGUEUR_BARRE * coef);
+                    materiaux.suspentes += Math.ceil(surface * 1.4);
+                    materiaux.vis += Math.ceil(surface * 12);
+                }
+            });
+
+            // Affichage
+            let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">';
+            
+            Object.entries(materiaux.plaques).forEach(([type, qty]) => {
+                if (qty > 0) html += `<div class="result-item"><div class="value">${Math.ceil(qty)}</div><div class="label">${type}</div></div>`;
+            });
+            Object.entries(materiaux.rails).forEach(([type, qty]) => {
+                if (qty > 0) html += `<div class="result-item"><div class="value">${Math.ceil(qty)}</div><div class="label">${type} (barres 3m)</div></div>`;
+            });
+            Object.entries(materiaux.montants).forEach(([type, qty]) => {
+                if (qty > 0) html += `<div class="result-item"><div class="value">${Math.ceil(qty)}</div><div class="label">${type} (barres 3m)</div></div>`;
+            });
+            if (materiaux.fourrures > 0) html += `<div class="result-item"><div class="value">${Math.ceil(materiaux.fourrures)}</div><div class="label">Fourrures (3m)</div></div>`;
+            if (materiaux.suspentes > 0) html += `<div class="result-item"><div class="value">${Math.ceil(materiaux.suspentes)}</div><div class="label">Suspentes</div></div>`;
+            if (materiaux.map > 0) html += `<div class="result-item"><div class="value">${Math.ceil(materiaux.map)}</div><div class="label">MAP (kg)</div></div>`;
+            html += `<div class="result-item"><div class="value">${Math.ceil(materiaux.vis)}</div><div class="label">Vis</div></div>`;
+            html += `<div class="result-item"><div class="value">${Math.ceil(materiaux.bandes)}</div><div class="label">Bandes (ml)</div></div>`;
+            html += `<div class="result-item"><div class="value">${Math.ceil(materiaux.enduit / 25)}</div><div class="label">Enduit (sacs)</div></div>`;
+            html += '</div>';
+
+            document.getElementById('resultatAnalyseContent').innerHTML = html;
+            document.getElementById('resultatAnalyse').style.display = 'block';
+        }
+
+        console.log('PlaquistePro v5 - Calculs Rails/Montants corrigés + IA');
+    </script>
+</body>
+</html>
