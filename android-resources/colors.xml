@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+    Copier ce fichier dans :
+    android/app/src/main/res/values/colors.xml
+-->
+<resources>
+    <color name="colorPrimary">#1E3A5F</color>
+    <color name="colorPrimaryDark">#152d4a</color>
+    <color name="colorAccent">#FF6B35</color>
+    <color name="colorSuccess">#28a745</color>
+    <color name="colorWarning">#ffc107</color>
+    <color name="colorDanger">#dc3545</color>
+    <color name="colorBackground">#f5f5f5</color>
+    <color name="colorSurface">#ffffff</color>
+    <color name="colorOnPrimary">#ffffff</color>
+    <color name="colorOnBackground">#333333</color>
+</resources>

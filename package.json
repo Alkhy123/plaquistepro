@@ -1,0 +1,33 @@
+{
+  "name": "plaquistepro",
+  "version": "5.4.3",
+  "description": "Application pour plaquistes - Normes DTU, calculs et gestion de chantier",
+  "main": "index.js",
+  "scripts": {
+    "sync": "npx cap sync android",
+    "open": "npx cap open android",
+    "run": "npx cap run android",
+    "build": "npx cap build android",
+    "build-apk-debug": "cd android && ./gradlew assembleDebug",
+    "build-apk-release": "cd android && ./gradlew assembleRelease",
+    "build-aab": "cd android && ./gradlew bundleRelease"
+  },
+  "keywords": [
+    "plaquiste",
+    "dtu",
+    "construction",
+    "chantier",
+    "calcul"
+  ],
+  "author": "OLIVEIRA ROGEL",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/filesystem": "^5.2.2",
+    "@capacitor/share": "^5.0.8"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^5.0.0"
+  }
+}

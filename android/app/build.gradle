@@ -1,0 +1,36 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "com.oliveirarogel.plaquistepro"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.oliveirarogel.plaquistepro"
+        minSdk 22
+        targetSdk 34
+        versionCode 1
+        versionName "5.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
+    implementation "androidx.core:core-splashscreen:1.0.1"
+    implementation "androidx.webkit:webkit:1.8.0"
+    implementation project(':capacitor-android')
+}
+
+apply from: 'capacitor.build.gradle'

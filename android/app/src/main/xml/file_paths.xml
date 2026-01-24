@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Dossier cache pour les fichiers temporaires -->
+    <cache-path name="documents" path="documents/" />
+    
+    <!-- Dossier externe pour les téléchargements -->
+    <external-path name="downloads" path="Download/PlaquistePro/" />
+    
+    <!-- Dossier fichiers externes de l'app -->
+    <external-files-path name="external_files" path="." />
+</paths>
